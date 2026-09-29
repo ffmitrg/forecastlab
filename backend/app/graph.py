@@ -12,6 +12,7 @@ from .schemas import (QuestionSpec, QuestionAnalysis, Evidence, EvidenceAssessme
 from .sources import online_search
 from .llm import BudgetExceeded, ModelClient
 from .demo import demo_output
+from .review_policy import apply_review_policy
 from . import config
 
 
@@ -24,6 +25,7 @@ class FlowState(TypedDict, total=False):
     actions: list[dict]
     simulation: list[dict]
     review: dict
+    review_policy_audit: dict
     forecast: dict
 
 
@@ -314,23 +316,12 @@ def build_graph(record: RunRecord, imported: list[Evidence], model: ModelClient 
                      "检查给定证据节选是否支持关键判断、遗漏反证和模拟跳步。最多列 5 条关键问题，每条不超过 80 字；严重问题用 blocked。"
                      "信息截至日之后的结果未知是预测对象，不得要求未来证据来证明结果；可指出截至日当时缺少的资料。"
                      "affected_ids 可引用已有证据、假设、主体、行动或模拟编号，不能新造编号或证据。")
-        future_gap_found = any(mistakes_future_outcome_for_missing_evidence(
-            f"{issue.claim} {issue.explanation}", question) for issue in review.issues)
-        future_gap_found |= any(mistakes_future_outcome_for_missing_evidence(x, question, assume_missing=True)
-                                for x in review.missing_evidence)
-        future_gap_found |= any(mistakes_future_outcome_for_missing_evidence(x, question)
-                                for x in review.unsupported_claims)
-        future_gap_found |= mistakes_future_outcome_for_missing_evidence(world.summary, question)
-        review.issues = [issue for issue in review.issues if not mistakes_future_outcome_for_missing_evidence(
-            f"{issue.claim} {issue.explanation}", question)]
-        review.missing_evidence = [x for x in review.missing_evidence
-                                   if not mistakes_future_outcome_for_missing_evidence(x, question, assume_missing=True)]
-        review.unsupported_claims = [x for x in review.unsupported_claims
-                                     if not mistakes_future_outcome_for_missing_evidence(x, question)]
+        review, policy_audit = apply_review_policy(review, question)
+        future_gap_found = policy_audit["removed_future_demands"]
         if future_gap_found:
             review.issues.append(ReviewIssue(
                 severity="medium", claim="预测期结果未知应由概率表达",
-                explanation="审查排除了要求未来行情的判断；概率仅使用截至日证据。"))
+                explanation="已移除仅要求未来实际结果的意见；是否能估计概率仍由证据审查决定。"))
         if not evidence:
             review.status = "blocked"
             review.issues.append(ReviewIssue(severity="high", claim="证据包为空", explanation="没有可核查的外部证据，不能给概率。"))
@@ -338,15 +329,20 @@ def build_graph(record: RunRecord, imported: list[Evidence], model: ModelClient 
             review.issues.append(ReviewIssue(severity="medium", claim="来源仅有搜索片段", explanation="未取得原文，结论需保留限制。"))
         if any(issue.severity == "high" for issue in review.issues) or review.unsupported_claims:
             review.status = "blocked"
-        elif future_gap_found and review.status == "blocked":
-            review.status = "qualified"
         valid = ({e.id for e in evidence} | {a.id for a in world.assumptions} | {a.id for a in world.actors}
                  | {a["id"] for a in state["actions"]} | {s["id"] for s in state["simulation"]})
         for issue in review.issues:
             issue.affected_ids = canonical_ids(issue.affected_ids, valid)
             check_ids(issue.affected_ids, valid, "审查意见")
         review.probability_basis = "full" if review.status != "blocked" else "none"
-        if (review.status == "blocked" or future_gap_found) and question.mode == "binary" and evidence:
+        policy_audit["evidence_audit"] = None
+        policy_audit["evidence_available_at_cutoff"] = None
+        # Preserve the existing escape path for a future-contaminated world.
+        # This signal can request a separate evidence audit, never erase an
+        # opinion or relax the review status.
+        world_future_signal = mistakes_future_outcome_for_missing_evidence(world.summary, question)
+        policy_audit["world_future_signal"] = world_future_signal
+        if (review.status == "blocked" or future_gap_found or world_future_signal) and question.mode == "binary" and evidence:
             audit = ask("evidence_audit", {"question": state["question"], "evidence": evidence_for_model(evidence, 1200),
                                            "evidence_assessment": state["evidence_assessment"]}, EvidenceOnlyAudit,
                         "仅审查信息截至日已有的外部证据，不使用世界状态、假设、主体行动或模拟结果。"
@@ -354,12 +350,16 @@ def build_graph(record: RunRecord, imported: list[Evidence], model: ModelClient 
                         "但不是当时冻结的盲回测，应提示回看偏差。"
                         "判断是否足以给一个有保留、未经校准的主观概率。未来结果尚未发生、资料仅有一两个来源或存在延期风险，"
                         "都不是自动阻断理由，应通过不确定的概率表达；若证据本身为空、晚于截至日、无法核查或不支持问题，才设 can_estimate=false。")
-            if audit.can_estimate and all(available_at_cutoff(e, question.as_of) for e in evidence):
+            policy_audit["evidence_audit"] = audit.model_dump(mode="json")
+            policy_audit["evidence_available_at_cutoff"] = all(available_at_cutoff(e, question.as_of) for e in evidence)
+            if audit.can_estimate and policy_audit["evidence_available_at_cutoff"]:
                 review.probability_basis = "evidence_only"
-            elif future_gap_found:
+            else:
                 review.status = "blocked"
                 review.probability_basis = "none"
-        return {"review": review.model_dump(mode="json")}
+        policy_audit["final_status"] = review.status
+        policy_audit["final_probability_basis"] = review.probability_basis
+        return {"review": review.model_dump(mode="json"), "review_policy_audit": policy_audit}
 
     def forecast_node(state: FlowState):
         question = QuestionSpec.model_validate(state["question"])

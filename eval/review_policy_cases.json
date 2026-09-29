@@ -1,0 +1,719 @@
+{
+  "schema_version": 1,
+  "scope": "Deterministic temporal-review policy only; no model calls, forecasting accuracy, Brier score, or calibration claims.",
+  "label_provenance": "Synthetic cases authored and labelled by an independent assistant before implementation. Not human-validated; user review is pending.",
+  "split_protocol": "10 development cases visible to implementer; 6 held-out texts withheld until the first requested evaluation. First exposure is recorded in the evaluation report. No tuning on held-out cases without disclosing loss of holdout status.",
+  "baseline_commit": "bb4d339a9fe94c016e751998943fc0f366b6ea0a",
+  "cases": [
+    {
+      "id": "D01",
+      "split": "dev",
+      "category": "pure_future_result",
+      "question": {
+        "id": "Q-policy-D01",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "blocked",
+        "probability_basis": "full",
+        "issues": [
+          {
+            "severity": "high",
+            "claim": "缺少未来的实际发布结果",
+            "explanation": "未来结果尚未发生，无法据此确认是否发布。",
+            "affected_ids": []
+          }
+        ],
+        "missing_evidence": [
+          "缺少预测期的实际发布结果"
+        ],
+        "unsupported_claims": []
+      },
+      "expected": {
+        "status": "qualified",
+        "decisions": {
+          "issues": [
+            {
+              "action": "drop",
+              "kind": "pure_future_demand",
+              "rationale": "只要求截至日之后的实际结果，没有独立的证据错误。"
+            }
+          ],
+          "missing_evidence": [
+            {
+              "action": "drop",
+              "kind": "pure_future_demand",
+              "rationale": "预测期实际结果正是待预测对象。"
+            }
+          ],
+          "unsupported_claims": []
+        }
+      }
+    },
+    {
+      "id": "D02",
+      "split": "dev",
+      "category": "future_date_actual_result",
+      "question": {
+        "id": "Q-policy-D02",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "blocked",
+        "probability_basis": "full",
+        "issues": [],
+        "missing_evidence": [
+          "2026年11月15日的实际发布记录"
+        ],
+        "unsupported_claims": [
+          "缺少2026年11月15日的实际发布结果，无法确认结局。"
+        ]
+      },
+      "expected": {
+        "status": "qualified",
+        "decisions": {
+          "issues": [],
+          "missing_evidence": [
+            {
+              "action": "drop",
+              "kind": "pure_future_demand",
+              "rationale": "missing_evidence 字段中的未来实际发布记录。"
+            }
+          ],
+          "unsupported_claims": [
+            {
+              "action": "drop",
+              "kind": "pure_future_demand",
+              "rationale": "明确要求未来日期的实际发布结果。"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "D03",
+      "split": "dev",
+      "category": "prior_plan_future_date",
+      "question": {
+        "id": "Q-policy-D03",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "blocked",
+        "probability_basis": "full",
+        "issues": [],
+        "missing_evidence": [
+          "缺少截至日前已公布的2026年10月1日发布计划文件"
+        ],
+        "unsupported_claims": []
+      },
+      "expected": {
+        "status": "blocked",
+        "decisions": {
+          "issues": [],
+          "missing_evidence": [
+            {
+              "action": "keep",
+              "kind": "legitimate",
+              "rationale": "被要求的是截至日前已存在的计划文件，未来日期描述计划目标。"
+            }
+          ],
+          "unsupported_claims": []
+        }
+      }
+    },
+    {
+      "id": "D04",
+      "split": "dev",
+      "category": "planned_vs_happened",
+      "question": {
+        "id": "Q-policy-D04",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "blocked",
+        "probability_basis": "full",
+        "issues": [
+          {
+            "severity": "high",
+            "claim": "缺少2026年10月1日已经正式发布的依据",
+            "explanation": "E001仅写计划发布，模拟却把计划写成已经发生的事实。",
+            "affected_ids": []
+          }
+        ],
+        "missing_evidence": [],
+        "unsupported_claims": [
+          "没有依据将2026年10月1日计划发布写成已经发布。"
+        ]
+      },
+      "expected": {
+        "status": "blocked",
+        "decisions": {
+          "issues": [
+            {
+              "action": "keep",
+              "kind": "legitimate",
+              "rationale": "应保留计划被误写成事实的审查意见。"
+            }
+          ],
+          "missing_evidence": [],
+          "unsupported_claims": [
+            {
+              "action": "keep",
+              "kind": "legitimate",
+              "rationale": "缺少的是事实化断言的支持，不能被未来日期抹除。"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "D05",
+      "split": "dev",
+      "category": "mixed_single_issue",
+      "question": {
+        "id": "Q-policy-D05",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "blocked",
+        "probability_basis": "full",
+        "issues": [
+          {
+            "severity": "high",
+            "claim": "缺少未来实际发布结果，且E001与E002的当前产能互相矛盾",
+            "explanation": "需要保留截至日已经存在的证据冲突，不能因同时提到未来而删除整条。",
+            "affected_ids": []
+          }
+        ],
+        "missing_evidence": [],
+        "unsupported_claims": []
+      },
+      "expected": {
+        "status": "blocked",
+        "decisions": {
+          "issues": [
+            {
+              "action": "keep",
+              "kind": "mixed",
+              "rationale": "同一条中有独立的证据冲突；保留整条。"
+            }
+          ],
+          "missing_evidence": [],
+          "unsupported_claims": []
+        }
+      }
+    },
+    {
+      "id": "D06",
+      "split": "dev",
+      "category": "ordinary_gap",
+      "question": {
+        "id": "Q-policy-D06",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "qualified",
+        "probability_basis": "full",
+        "issues": [],
+        "missing_evidence": [
+          "缺少截至日之前的第三方测试报告"
+        ],
+        "unsupported_claims": []
+      },
+      "expected": {
+        "status": "qualified",
+        "decisions": {
+          "issues": [],
+          "missing_evidence": [
+            {
+              "action": "keep",
+              "kind": "legitimate",
+              "rationale": "普通的历史资料缺口。"
+            }
+          ],
+          "unsupported_claims": []
+        }
+      }
+    },
+    {
+      "id": "D07",
+      "split": "dev",
+      "category": "ambiguous_future_information",
+      "question": {
+        "id": "Q-policy-D07",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "blocked",
+        "probability_basis": "full",
+        "issues": [],
+        "missing_evidence": [
+          "缺少2026年10月1日相关信息"
+        ],
+        "unsupported_claims": []
+      },
+      "expected": {
+        "status": "blocked",
+        "decisions": {
+          "issues": [],
+          "missing_evidence": [
+            {
+              "action": "keep",
+              "kind": "ambiguous",
+              "rationale": "无法判定是既有计划还是未来观测；保守保留。"
+            }
+          ],
+          "unsupported_claims": []
+        }
+      }
+    },
+    {
+      "id": "D08",
+      "split": "dev",
+      "category": "unknown_blocker_missing_only",
+      "question": {
+        "id": "Q-policy-D08",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "blocked",
+        "probability_basis": "full",
+        "issues": [],
+        "missing_evidence": [
+          "缺少未来的实际发布结果"
+        ],
+        "unsupported_claims": []
+      },
+      "expected": {
+        "status": "blocked",
+        "decisions": {
+          "issues": [],
+          "missing_evidence": [
+            {
+              "action": "drop",
+              "kind": "pure_future_demand",
+              "rationale": "删除纯未来结果需求，但没有明确的高严重度阻断来源可以归因。"
+            }
+          ],
+          "unsupported_claims": []
+        }
+      }
+    },
+    {
+      "id": "D09",
+      "split": "dev",
+      "category": "world_summary_cannot_unblock",
+      "question": {
+        "id": "Q-policy-D09",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "缺少未来的实际发布结果，当前世界状态只记录截至日的准备工作。",
+      "raw_review": {
+        "status": "blocked",
+        "probability_basis": "full",
+        "issues": [],
+        "missing_evidence": [],
+        "unsupported_claims": []
+      },
+      "expected": {
+        "status": "blocked",
+        "decisions": {
+          "issues": [],
+          "missing_evidence": [],
+          "unsupported_claims": []
+        }
+      }
+    },
+    {
+      "id": "D10",
+      "split": "dev",
+      "category": "remaining_opinion_cannot_unblock",
+      "question": {
+        "id": "Q-policy-D10",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "blocked",
+        "probability_basis": "full",
+        "issues": [
+          {
+            "severity": "high",
+            "claim": "缺少未来实际发布结果",
+            "explanation": "没有结算日的实际发布记录。",
+            "affected_ids": []
+          }
+        ],
+        "missing_evidence": [
+          "缺少截至日前的产能审计报告"
+        ],
+        "unsupported_claims": []
+      },
+      "expected": {
+        "status": "blocked",
+        "decisions": {
+          "issues": [
+            {
+              "action": "drop",
+              "kind": "pure_future_demand",
+              "rationale": "该高严重度意见只索取未来观测。"
+            }
+          ],
+          "missing_evidence": [
+            {
+              "action": "keep",
+              "kind": "legitimate",
+              "rationale": "还有另一条真实历史资料缺口，不能推断所有阻断原因都已消失。"
+            }
+          ],
+          "unsupported_claims": []
+        }
+      }
+    },
+    {
+      "id": "H01",
+      "split": "heldout",
+      "category": "pure_settlement_result",
+      "question": {
+        "id": "Q-policy-H01",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "blocked",
+        "probability_basis": "full",
+        "issues": [
+          {
+            "severity": "high",
+            "claim": "缺少结算日的最终结果",
+            "explanation": "截至日之后的实际结果尚未产生，因此无法核实结算结局。",
+            "affected_ids": []
+          }
+        ],
+        "missing_evidence": [
+          "结算日的最终结果"
+        ],
+        "unsupported_claims": []
+      },
+      "expected": {
+        "status": "qualified",
+        "decisions": {
+          "issues": [
+            {
+              "action": "drop",
+              "kind": "pure_future_demand",
+              "rationale": "只有尚未发生的结算结果要求。"
+            }
+          ],
+          "missing_evidence": [
+            {
+              "action": "drop",
+              "kind": "pure_future_demand",
+              "rationale": "最终结算结果尚不应可得。"
+            }
+          ],
+          "unsupported_claims": []
+        }
+      }
+    },
+    {
+      "id": "H02",
+      "split": "heldout",
+      "category": "prior_contract_future_date",
+      "question": {
+        "id": "Q-policy-H02",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "blocked",
+        "probability_basis": "full",
+        "issues": [
+          {
+            "severity": "high",
+            "claim": "缺少2026年11月1日交付合同原文",
+            "explanation": "截至日前新闻称已签约，需要核验已经存在的合同及约定。",
+            "affected_ids": []
+          }
+        ],
+        "missing_evidence": [],
+        "unsupported_claims": []
+      },
+      "expected": {
+        "status": "blocked",
+        "decisions": {
+          "issues": [
+            {
+              "action": "keep",
+              "kind": "legitimate",
+              "rationale": "未来是交付时间，合同本身应当已经存在。"
+            }
+          ],
+          "missing_evidence": [],
+          "unsupported_claims": []
+        }
+      }
+    },
+    {
+      "id": "H03",
+      "split": "heldout",
+      "category": "mixed_missing_evidence",
+      "question": {
+        "id": "Q-policy-H03",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "blocked",
+        "probability_basis": "full",
+        "issues": [],
+        "missing_evidence": [
+          "缺少未来实际发布结果；另外截至日已有的E001与E002对测试是否通过的记载相互矛盾。"
+        ],
+        "unsupported_claims": []
+      },
+      "expected": {
+        "status": "blocked",
+        "decisions": {
+          "issues": [],
+          "missing_evidence": [
+            {
+              "action": "keep",
+              "kind": "mixed",
+              "rationale": "同一条还包含截至日既有证据冲突。"
+            }
+          ],
+          "unsupported_claims": []
+        }
+      }
+    },
+    {
+      "id": "H04",
+      "split": "heldout",
+      "category": "unsupported_future_fact",
+      "question": {
+        "id": "Q-policy-H04",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "blocked",
+        "probability_basis": "full",
+        "issues": [],
+        "missing_evidence": [],
+        "unsupported_claims": [
+          "2026年10月1日已经正式发布"
+        ]
+      },
+      "expected": {
+        "status": "blocked",
+        "decisions": {
+          "issues": [],
+          "missing_evidence": [],
+          "unsupported_claims": [
+            {
+              "action": "keep",
+              "kind": "legitimate",
+              "rationale": "这是被审查者的无支持事实断言，不是要求未来证据。"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "H05",
+      "split": "heldout",
+      "category": "clean_review",
+      "question": {
+        "id": "Q-policy-H05",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "passed",
+        "probability_basis": "full",
+        "issues": [],
+        "missing_evidence": [],
+        "unsupported_claims": []
+      },
+      "expected": {
+        "status": "passed",
+        "decisions": {
+          "issues": [],
+          "missing_evidence": [],
+          "unsupported_claims": []
+        }
+      }
+    },
+    {
+      "id": "H06",
+      "split": "heldout",
+      "category": "qualified_future_gap",
+      "question": {
+        "id": "Q-policy-H06",
+        "question": "产品是否会在计划截止日期前正式发布？",
+        "as_of": "2026-09-26T00:00:00Z",
+        "resolve_by": "2026-11-15T23:59:59Z",
+        "resolution_rule": "以官方正式发布公告为准",
+        "outcomes": [
+          "是",
+          "否"
+        ],
+        "mode": "binary"
+      },
+      "world_summary": "截至日已有资料显示产品仍处于准备阶段。",
+      "raw_review": {
+        "status": "qualified",
+        "probability_basis": "full",
+        "issues": [],
+        "missing_evidence": [
+          "缺少后续的实际发布结果"
+        ],
+        "unsupported_claims": []
+      },
+      "expected": {
+        "status": "qualified",
+        "decisions": {
+          "issues": [],
+          "missing_evidence": [
+            {
+              "action": "drop",
+              "kind": "pure_future_demand",
+              "rationale": "只要求预测期后续观测，删除后保留原 qualified 状态。"
+            }
+          ],
+          "unsupported_claims": []
+        }
+      }
+    }
+  ]
+}

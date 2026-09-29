@@ -1,0 +1,339 @@
+{
+  "scope": "Deterministic temporal-review policy only; no model calls, forecasting accuracy, Brier score, or calibration claims.",
+  "label_provenance": "Synthetic cases authored and labelled by an independent assistant before implementation. Not human-validated; user review is pending.",
+  "split_protocol": "10 development cases visible to implementer; 6 held-out texts withheld until the first requested evaluation. First exposure is recorded in the evaluation report. No tuning on held-out cases without disclosing loss of holdout status.",
+  "run_label": "first-heldout",
+  "baseline_commit": "bb4d339a9fe94c016e751998943fc0f366b6ea0a",
+  "cases_sha256": "b26846307a25dfefa765df4e07eae29b3d589ee80622a6a5b197312d9545304d",
+  "policy_source_sha256": "e74e771df0f33d738fa22369a1b6f1b70e0bb1cc2da525705ca8536fc5b369cf",
+  "evaluation_conditions": "Identical frozen raw reviews and cutoff times; no model, retrieval, world simulation, or evidence_audit calls. Workflow integration is tested separately.",
+  "metrics_note": "Counts use labelled opinions as denominators except status/case metrics. Keep-labelled includes legitimate, mixed and ambiguous opinions; lower is better for the first three metrics.",
+  "summary": {
+    "heldout": {
+      "legacy": {
+        "keep_labelled_opinions_dropped": {
+          "count": 1,
+          "total": 3
+        },
+        "pure_future_demands_retained": {
+          "count": 1,
+          "total": 3
+        },
+        "mixed_opinions_dropped": {
+          "count": 0,
+          "total": 1
+        },
+        "correct_status": {
+          "count": 5,
+          "total": 6
+        },
+        "fully_correct_cases": {
+          "count": 4,
+          "total": 6
+        }
+      },
+      "current": {
+        "keep_labelled_opinions_dropped": {
+          "count": 0,
+          "total": 3
+        },
+        "pure_future_demands_retained": {
+          "count": 2,
+          "total": 3
+        },
+        "mixed_opinions_dropped": {
+          "count": 0,
+          "total": 1
+        },
+        "correct_status": {
+          "count": 5,
+          "total": 6
+        },
+        "fully_correct_cases": {
+          "count": 5,
+          "total": 6
+        }
+      }
+    },
+    "all": {
+      "legacy": {
+        "keep_labelled_opinions_dropped": {
+          "count": 1,
+          "total": 3
+        },
+        "pure_future_demands_retained": {
+          "count": 1,
+          "total": 3
+        },
+        "mixed_opinions_dropped": {
+          "count": 0,
+          "total": 1
+        },
+        "correct_status": {
+          "count": 5,
+          "total": 6
+        },
+        "fully_correct_cases": {
+          "count": 4,
+          "total": 6
+        }
+      },
+      "current": {
+        "keep_labelled_opinions_dropped": {
+          "count": 0,
+          "total": 3
+        },
+        "pure_future_demands_retained": {
+          "count": 2,
+          "total": 3
+        },
+        "mixed_opinions_dropped": {
+          "count": 0,
+          "total": 1
+        },
+        "correct_status": {
+          "count": 5,
+          "total": 6
+        },
+        "fully_correct_cases": {
+          "count": 5,
+          "total": 6
+        }
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "H01",
+      "split": "heldout",
+      "category": "pure_settlement_result",
+      "legacy": {
+        "status": "qualified",
+        "expected_status": "qualified",
+        "status_correct": true,
+        "decisions": [
+          {
+            "field": "issues",
+            "index": 0,
+            "kind": "pure_future_demand",
+            "expected": "drop",
+            "actual": "drop",
+            "reason": "Frozen legacy date/keyword matcher.",
+            "correct": true
+          },
+          {
+            "field": "missing_evidence",
+            "index": 0,
+            "kind": "pure_future_demand",
+            "expected": "drop",
+            "actual": "drop",
+            "reason": "Frozen legacy date/keyword matcher.",
+            "correct": true
+          }
+        ],
+        "case_correct": true
+      },
+      "current": {
+        "status": "blocked",
+        "expected_status": "qualified",
+        "status_correct": false,
+        "decisions": [
+          {
+            "field": "issues",
+            "index": 0,
+            "kind": "pure_future_demand",
+            "expected": "drop",
+            "actual": "keep",
+            "reason": "含未能确定为纯未来结果要求的表述，保守保留整条。",
+            "correct": false
+          },
+          {
+            "field": "missing_evidence",
+            "index": 0,
+            "kind": "pure_future_demand",
+            "expected": "drop",
+            "actual": "keep",
+            "reason": "含未能确定为纯未来结果要求的表述，保守保留整条。",
+            "correct": false
+          }
+        ],
+        "case_correct": false
+      }
+    },
+    {
+      "id": "H02",
+      "split": "heldout",
+      "category": "prior_contract_future_date",
+      "legacy": {
+        "status": "qualified",
+        "expected_status": "blocked",
+        "status_correct": false,
+        "decisions": [
+          {
+            "field": "issues",
+            "index": 0,
+            "kind": "legitimate",
+            "expected": "keep",
+            "actual": "drop",
+            "reason": "Frozen legacy date/keyword matcher.",
+            "correct": false
+          }
+        ],
+        "case_correct": false
+      },
+      "current": {
+        "status": "blocked",
+        "expected_status": "blocked",
+        "status_correct": true,
+        "decisions": [
+          {
+            "field": "issues",
+            "index": 0,
+            "kind": "legitimate",
+            "expected": "keep",
+            "actual": "keep",
+            "reason": "涉及既有资料、事实判断或反对索要未来结果的意见，保留整条。",
+            "correct": true
+          }
+        ],
+        "case_correct": true
+      }
+    },
+    {
+      "id": "H03",
+      "split": "heldout",
+      "category": "mixed_missing_evidence",
+      "legacy": {
+        "status": "blocked",
+        "expected_status": "blocked",
+        "status_correct": true,
+        "decisions": [
+          {
+            "field": "missing_evidence",
+            "index": 0,
+            "kind": "mixed",
+            "expected": "keep",
+            "actual": "keep",
+            "reason": "Frozen legacy date/keyword matcher.",
+            "correct": true
+          }
+        ],
+        "case_correct": true
+      },
+      "current": {
+        "status": "blocked",
+        "expected_status": "blocked",
+        "status_correct": true,
+        "decisions": [
+          {
+            "field": "missing_evidence",
+            "index": 0,
+            "kind": "mixed",
+            "expected": "keep",
+            "actual": "keep",
+            "reason": "涉及既有资料、事实判断或反对索要未来结果的意见，保留整条。",
+            "correct": true
+          }
+        ],
+        "case_correct": true
+      }
+    },
+    {
+      "id": "H04",
+      "split": "heldout",
+      "category": "unsupported_future_fact",
+      "legacy": {
+        "status": "blocked",
+        "expected_status": "blocked",
+        "status_correct": true,
+        "decisions": [
+          {
+            "field": "unsupported_claims",
+            "index": 0,
+            "kind": "legitimate",
+            "expected": "keep",
+            "actual": "keep",
+            "reason": "Frozen legacy date/keyword matcher.",
+            "correct": true
+          }
+        ],
+        "case_correct": true
+      },
+      "current": {
+        "status": "blocked",
+        "expected_status": "blocked",
+        "status_correct": true,
+        "decisions": [
+          {
+            "field": "unsupported_claims",
+            "index": 0,
+            "kind": "legitimate",
+            "expected": "keep",
+            "actual": "keep",
+            "reason": "涉及既有资料、事实判断或反对索要未来结果的意见，保留整条。",
+            "correct": true
+          }
+        ],
+        "case_correct": true
+      }
+    },
+    {
+      "id": "H05",
+      "split": "heldout",
+      "category": "clean_review",
+      "legacy": {
+        "status": "passed",
+        "expected_status": "passed",
+        "status_correct": true,
+        "decisions": [],
+        "case_correct": true
+      },
+      "current": {
+        "status": "passed",
+        "expected_status": "passed",
+        "status_correct": true,
+        "decisions": [],
+        "case_correct": true
+      }
+    },
+    {
+      "id": "H06",
+      "split": "heldout",
+      "category": "qualified_future_gap",
+      "legacy": {
+        "status": "qualified",
+        "expected_status": "qualified",
+        "status_correct": true,
+        "decisions": [
+          {
+            "field": "missing_evidence",
+            "index": 0,
+            "kind": "pure_future_demand",
+            "expected": "drop",
+            "actual": "keep",
+            "reason": "Frozen legacy date/keyword matcher.",
+            "correct": false
+          }
+        ],
+        "case_correct": false
+      },
+      "current": {
+        "status": "qualified",
+        "expected_status": "qualified",
+        "status_correct": true,
+        "decisions": [
+          {
+            "field": "missing_evidence",
+            "index": 0,
+            "kind": "pure_future_demand",
+            "expected": "drop",
+            "actual": "drop",
+            "reason": "各分句仅索要截至日之后的实际结果或据此拒绝预测。",
+            "correct": true
+          }
+        ],
+        "case_correct": true
+      }
+    }
+  ]
+}
