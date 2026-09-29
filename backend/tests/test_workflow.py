@@ -71,7 +71,8 @@ def test_import_rejects_future_or_private_source():
     item = demo_evidence()[0].model_copy(update={"published_at": DEMO_QUESTION.as_of + timedelta(days=1)})
     with pytest.raises(ValueError, match="晚于"):
         normalize_import([item], DEMO_QUESTION)
-    minimal = ImportedEvidence(title="Test source", source_url="https://example.org/source", excerpt="A quoted sentence.")
+    minimal = ImportedEvidence(title="Test source", source_url="https://example.org/source", excerpt="A quoted sentence.",
+                               retrieved_at=DEMO_QUESTION.as_of)
     normalized = normalize_import([minimal], DEMO_QUESTION)[0]
     assert normalized.id == "E001"
     assert len(normalized.content_hash) == 64
