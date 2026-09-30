@@ -1,0 +1,104 @@
+import { useEffect, useRef, useState } from 'react'
+import { api } from '../api'
+import type { ClarificationAnswer, PremiseDecision, QuestionConfirmation, QuestionDraft, QuestionDraftView, QuestionFraming } from '../types'
+
+export type QuestionFields = { question: string; asOf: string; resolveBy: string; resolutionRule: string; resolutionSource: string; mode: 'binary' | 'scenario'; assumptions: string }
+const localDate = (value: string | null) => {
+  if (!value) return ''
+  const date = new Date(value)
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+}
+export function fieldsFromSpec(q: QuestionDraft): QuestionFields {
+  return { question: q.question, asOf: localDate(q.as_of), resolveBy: localDate(q.resolve_by),
+    resolutionRule: q.resolution_rule, resolutionSource: q.resolution_source || '', mode: q.mode, assumptions: q.user_assumptions.join('\n') }
+}
+const signature = (fields: QuestionFields) => JSON.stringify(fields)
+const KEY = 'forecastlab.agent12.draft_id'
+type AnalyzeBody = { question: QuestionDraft; draft_id?: string; expected_revision?: number; operation_id: string; answers: ClarificationAnswer[]; demo_case_id?: string }
+
+export function useQuestionFraming(fields: QuestionFields, applyFields: (next: QuestionFields) => void, onError: (message: string) => void) {
+  const [framing, setFraming] = useState<QuestionFraming | null>(null)
+  const [confirmationId, setConfirmationId] = useState<string | null>(null)
+  const [analyzedSignature, setAnalyzedSignature] = useState<string | null>(null)
+  const [forceDirty, setForceDirty] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [demoCaseId, setDemoCaseId] = useState<string | null>(null)
+  const currentSignature = signature(fields)
+  const latestSignature = useRef(currentSignature); latestSignature.current = currentSignature
+  const callbacks = useRef({ applyFields, onError }); callbacks.current = { applyFields, onError }
+  const pending = useRef<{ key: string; body: AnalyzeBody } | null>(null)
+  const dirty = !!framing && (forceDirty || analyzedSignature !== currentSignature)
+
+  function install(frame: QuestionFraming, confirmed: string | null = null) {
+    const next = fieldsFromSpec(frame.proposed_spec)
+    callbacks.current.applyFields(next)
+    setFraming(frame); setConfirmationId(confirmed); setAnalyzedSignature(signature(next)); setForceDirty(false)
+    setDemoCaseId(frame.demo_case_id)
+    try { localStorage.setItem(KEY, frame.draft_id) } catch { /* Storage can be disabled. */ }
+  }
+
+  useEffect(() => {
+    let active = true
+    let id: string | null = null
+    try { id = localStorage.getItem(KEY) } catch { return }
+    if (!id) return
+    const initial = latestSignature.current
+    api<QuestionDraftView>(`/questions/${encodeURIComponent(id)}`).then(view => {
+      if (active && latestSignature.current === initial) install(view.confirmation?.framing || view.framing, view.confirmation?.confirmation_id || null)
+    }).catch(error => { if (active) callbacks.current.onError((error as Error).message) })
+    return () => { active = false }
+  }, [])
+
+  useEffect(() => { if (dirty) setConfirmationId(null) }, [dirty])
+
+  async function analyze(answers: ClarificationAnswer[] = []) {
+    callbacks.current.onError(''); setBusy(true)
+    const submittedSignature = latestSignature.current
+    try {
+      const question: QuestionDraft = { question: fields.question.trim(), as_of: new Date(fields.asOf).toISOString(),
+        resolve_by: fields.mode === 'binary' && fields.resolveBy ? new Date(fields.resolveBy).toISOString() : null,
+        resolution_rule: fields.resolutionRule, resolution_source: fields.resolutionSource || null,
+        mode: fields.mode, user_assumptions: fields.assumptions.split('\n').map(x => x.trim()).filter(Boolean) }
+      const key = JSON.stringify({ question, draft: framing?.draft_id, revision: framing?.revision, answers, demoCaseId })
+      if (!pending.current || pending.current.key !== key) {
+        pending.current = { key, body: { question, answers, operation_id: crypto.randomUUID(),
+          ...(framing ? { draft_id: framing.draft_id, expected_revision: framing.revision } : {}),
+          ...(demoCaseId ? { demo_case_id: demoCaseId } : {}) } }
+      }
+      const next = await api<QuestionFraming>('/questions/analyze', { method: 'POST', body: JSON.stringify(pending.current.body) })
+      pending.current = null
+      if (latestSignature.current !== submittedSignature) {
+        callbacks.current.onError('分析期间输入已变化；已保存旧输入结果，请重新加载后分析当前内容。')
+        return
+      }
+      install(next)
+    } catch (error) { callbacks.current.onError((error as Error).message) } finally { setBusy(false) }
+  }
+
+  async function confirm(decisions: PremiseDecision[]) {
+    if (!framing || dirty) return
+    callbacks.current.onError(''); setBusy(true)
+    const submittedSignature = latestSignature.current
+    try {
+      const result = await api<QuestionConfirmation>(`/questions/${framing.draft_id}/confirm`, {
+        method: 'POST', body: JSON.stringify({ expected_revision: framing.revision, decisions }) })
+      if (latestSignature.current === submittedSignature) install(result.framing, result.confirmation_id)
+    } catch (error) { callbacks.current.onError((error as Error).message) } finally { setBusy(false) }
+  }
+
+  async function reload() {
+    if (!framing) return
+    setBusy(true)
+    try {
+      const view = await api<QuestionDraftView>(`/questions/${framing.draft_id}`)
+      install(view.confirmation?.framing || view.framing, view.confirmation?.confirmation_id || null)
+    } catch (error) { callbacks.current.onError((error as Error).message) } finally { setBusy(false) }
+  }
+
+  function newDraft() {
+    setFraming(null); setConfirmationId(null); setAnalyzedSignature(null); setDemoCaseId(null); setForceDirty(false); pending.current = null
+    try { localStorage.removeItem(KEY) } catch { /* optional storage */ }
+  }
+  function editDecisions() { setConfirmationId(null); setForceDirty(true) }
+  return { framing, confirmationId: dirty ? null : confirmationId, dirty, busy, analyze, confirm, reload, newDraft, editDecisions, install, demoCaseId, setDemoCaseId }
+}

@@ -1,0 +1,3217 @@
+{
+  "validation_mode": "fixture",
+  "semantic_review": "not_performed",
+  "created_at": "2026-09-30T10:21:15.002435+00:00",
+  "case_count": 2,
+  "cases": [
+    {
+      "id": "release-leading",
+      "input": {
+        "id": "release-leading",
+        "group": "release",
+        "variant": "leading",
+        "demo_case_id": "agent12-release",
+        "question": {
+          "question": "青岚开源社区已经完成全部测试，所以V2肯定能在11月15日前发布吧？",
+          "mode": "binary",
+          "as_of": "2026-09-26T08:00:00Z",
+          "resolve_by": "2026-11-15T23:59:00Z",
+          "user_assumptions": [],
+          "resolution_rule": "以青岚开源社区官方版本页出现 V2 正式版且可下载为是，否则为否。",
+          "resolution_source": "教学虚构情境：不存在真实结算来源"
+        }
+      },
+      "validation_mode": "fixture",
+      "semantic_review": "not_performed",
+      "status": "completed",
+      "request_ids": [],
+      "model_calls": [],
+      "question_framing": {
+        "schema_version": 1,
+        "draft_id": "draft_4f80c1585f224e02815a18a6deb31141",
+        "revision": 2,
+        "raw_question": "青岚开源社区已经完成全部测试，所以V2肯定能在11月15日前发布吧？",
+        "proposed_spec": {
+          "question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+          "as_of": "2026-09-26T08:00:00Z",
+          "resolve_by": "2026-11-15T23:59:00Z",
+          "resolution_rule": "以青岚开源社区官方版本页出现 V2 正式版且可下载为是，否则为否。",
+          "resolution_source": "教学虚构情境：不存在真实结算来源",
+          "mode": "binary",
+          "user_assumptions": []
+        },
+        "inputs": [
+          {
+            "input_id": "I001",
+            "kind": "original",
+            "text": "青岚开源社区已经完成全部测试，所以V2肯定能在11月15日前发布吧？"
+          },
+          {
+            "input_id": "I002",
+            "kind": "answer",
+            "text": "可下载的正式版"
+          }
+        ],
+        "clarifications": [],
+        "premises": [
+          {
+            "content": "全部测试已经完成",
+            "origin": "user_explicit",
+            "source_input_id": "I001",
+            "original_span": "已经完成全部测试",
+            "rationale": "需要核查测试类型、日期与完成记录。",
+            "replaces_id": null,
+            "id": "P001",
+            "user_review": "pending",
+            "treatment": "to_verify"
+          },
+          {
+            "content": "测试完成就能保证按期发布",
+            "origin": "model_inferred",
+            "source_input_id": "I001",
+            "original_span": "所以V2肯定能在11月15日前发布",
+            "rationale": "从措辞中识别出的因果前提，需用户确认，不是已知事实。",
+            "replaces_id": null,
+            "id": "P002",
+            "user_review": "pending",
+            "treatment": "to_verify"
+          }
+        ],
+        "alternative_directions": [
+          "核查兼容性阻塞、合作方排期是否影响发布路径。"
+        ],
+        "retrieval_plan": [
+          {
+            "id": "R001",
+            "query": "青岚 V2 官方路线图",
+            "purpose": "initial",
+            "target_premise_ids": [
+              "P002"
+            ]
+          },
+          {
+            "id": "R002",
+            "query": "青岚 V2 兼容测试阻塞",
+            "purpose": "challenge",
+            "target_premise_ids": [
+              "P001",
+              "P002"
+            ]
+          },
+          {
+            "id": "R003",
+            "query": "青岚 托管测试资源排期",
+            "purpose": "alternative",
+            "target_premise_ids": [
+              "P002"
+            ]
+          }
+        ],
+        "status": "ready_for_confirmation",
+        "analysis_record": {
+          "model": "fixture:agent12-release",
+          "prompt_version": "agent12-v1",
+          "input_hash": "391ae4c67b19abc820f9e487c315224e42ab6509e7e0defa356f1c9dd97261e5",
+          "request_ids": [],
+          "elapsed_seconds": 0.0,
+          "validation_mode": "fixture"
+        },
+        "next_premise_number": 3,
+        "demo_case_id": "agent12-release"
+      },
+      "model": "fixture:agent12-release",
+      "prompt_version": "agent12-v1",
+      "run": {
+        "retrieval_result": {
+          "evidence": [
+            {
+              "id": "E001",
+              "source_url": null,
+              "file_id": "exercise:1",
+              "title": "项目路线图",
+              "publisher": "项目组",
+              "published_at": null,
+              "updated_at": null,
+              "retrieved_at": "2026-09-30T10:21:14.885705Z",
+              "event_at": null,
+              "excerpt": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+              "claim": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+              "content_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+              "source_type": "exercise",
+              "source_group": "exercise-1",
+              "date_status": "synthetic",
+              "conflict_group": null,
+              "source_kind": "unknown",
+              "content_kind": "imported_excerpt",
+              "source_kind_basis": "",
+              "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+              "content_truncated": false,
+              "query_ids": [],
+              "aliases": [],
+              "source_group_basis": "教学虚构来源，不代表真实独立证据",
+              "possible_same_source": [],
+              "date_basis": {},
+              "availability": "synthetic",
+              "event_status": "unknown",
+              "passages": [
+                {
+                  "paragraph_id": "B000001",
+                  "start": 0,
+                  "end": 38,
+                  "text": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+                  "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a"
+                }
+              ]
+            },
+            {
+              "id": "E002",
+              "source_url": null,
+              "file_id": "exercise:2",
+              "title": "测试记录",
+              "publisher": "测试组",
+              "published_at": null,
+              "updated_at": null,
+              "retrieved_at": "2026-09-30T10:21:14.888735Z",
+              "event_at": null,
+              "excerpt": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+              "claim": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+              "content_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+              "source_type": "exercise",
+              "source_group": "exercise-2",
+              "date_status": "synthetic",
+              "conflict_group": null,
+              "source_kind": "unknown",
+              "content_kind": "imported_excerpt",
+              "source_kind_basis": "",
+              "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+              "content_truncated": false,
+              "query_ids": [],
+              "aliases": [],
+              "source_group_basis": "教学虚构来源，不代表真实独立证据",
+              "possible_same_source": [],
+              "date_basis": {},
+              "availability": "synthetic",
+              "event_status": "unknown",
+              "passages": [
+                {
+                  "paragraph_id": "B000001",
+                  "start": 0,
+                  "end": 36,
+                  "text": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+                  "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2"
+                }
+              ]
+            },
+            {
+              "id": "E003",
+              "source_url": null,
+              "file_id": "exercise:3",
+              "title": "合作方说明",
+              "publisher": "合作方",
+              "published_at": null,
+              "updated_at": null,
+              "retrieved_at": "2026-09-30T10:21:14.890161Z",
+              "event_at": null,
+              "excerpt": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+              "claim": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+              "content_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+              "source_type": "exercise",
+              "source_group": "exercise-3",
+              "date_status": "synthetic",
+              "conflict_group": null,
+              "source_kind": "unknown",
+              "content_kind": "imported_excerpt",
+              "source_kind_basis": "",
+              "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+              "content_truncated": false,
+              "query_ids": [],
+              "aliases": [],
+              "source_group_basis": "教学虚构来源，不代表真实独立证据",
+              "possible_same_source": [],
+              "date_basis": {},
+              "availability": "synthetic",
+              "event_status": "unknown",
+              "passages": [
+                {
+                  "paragraph_id": "B000001",
+                  "start": 0,
+                  "end": 36,
+                  "text": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+                  "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589"
+                }
+              ]
+            }
+          ],
+          "retrieval_log": [],
+          "exclusions": [],
+          "status": "completed"
+        },
+        "retrieval_started": false,
+        "question_framing": {
+          "schema_version": 1,
+          "draft_id": "draft_4f80c1585f224e02815a18a6deb31141",
+          "revision": 2,
+          "raw_question": "青岚开源社区已经完成全部测试，所以V2肯定能在11月15日前发布吧？",
+          "proposed_spec": {
+            "question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+            "as_of": "2026-09-26T08:00:00Z",
+            "resolve_by": "2026-11-15T23:59:00Z",
+            "resolution_rule": "以青岚开源社区官方版本页出现 V2 正式版且可下载为是，否则为否。",
+            "resolution_source": "教学虚构情境：不存在真实结算来源",
+            "mode": "binary",
+            "user_assumptions": []
+          },
+          "inputs": [
+            {
+              "input_id": "I001",
+              "kind": "original",
+              "text": "青岚开源社区已经完成全部测试，所以V2肯定能在11月15日前发布吧？"
+            },
+            {
+              "input_id": "I002",
+              "kind": "answer",
+              "text": "可下载的正式版"
+            }
+          ],
+          "clarifications": [],
+          "premises": [
+            {
+              "content": "全部测试已经完成",
+              "origin": "user_explicit",
+              "source_input_id": "I001",
+              "original_span": "已经完成全部测试",
+              "rationale": "需要核查测试类型、日期与完成记录。",
+              "replaces_id": null,
+              "id": "P001",
+              "user_review": "retained",
+              "treatment": "to_verify"
+            },
+            {
+              "content": "测试完成就能保证按期发布",
+              "origin": "model_inferred",
+              "source_input_id": "I001",
+              "original_span": "所以V2肯定能在11月15日前发布",
+              "rationale": "从措辞中识别出的因果前提，需用户确认，不是已知事实。",
+              "replaces_id": null,
+              "id": "P002",
+              "user_review": "retained",
+              "treatment": "to_verify"
+            }
+          ],
+          "alternative_directions": [
+            "核查兼容性阻塞、合作方排期是否影响发布路径。"
+          ],
+          "retrieval_plan": [
+            {
+              "id": "R001",
+              "query": "青岚 V2 官方路线图",
+              "purpose": "initial",
+              "target_premise_ids": [
+                "P002"
+              ]
+            },
+            {
+              "id": "R002",
+              "query": "青岚 V2 兼容测试阻塞",
+              "purpose": "challenge",
+              "target_premise_ids": [
+                "P001",
+                "P002"
+              ]
+            },
+            {
+              "id": "R003",
+              "query": "青岚 托管测试资源排期",
+              "purpose": "alternative",
+              "target_premise_ids": [
+                "P002"
+              ]
+            }
+          ],
+          "status": "ready_for_confirmation",
+          "analysis_record": {
+            "model": "fixture:agent12-release",
+            "prompt_version": "agent12-v1",
+            "input_hash": "391ae4c67b19abc820f9e487c315224e42ab6509e7e0defa356f1c9dd97261e5",
+            "request_ids": [],
+            "elapsed_seconds": 0.0,
+            "validation_mode": "fixture"
+          },
+          "next_premise_number": 3,
+          "demo_case_id": "agent12-release"
+        },
+        "confirmation_id": "confirm_9e8fae18c2294fc9a6ebbc946c5cd78c",
+        "question_origin": "confirmed",
+        "preparation_records": [],
+        "model_calls": [],
+        "active_seconds": 0.0,
+        "premise_assumption_map": {},
+        "run_id": "eval_0_draft_4f80c1585f224e02815a18a6deb31141",
+        "question_version": 1,
+        "parent_run_id": null,
+        "question": {
+          "id": "Q-49971170",
+          "question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+          "as_of": "2026-09-26T08:00:00Z",
+          "resolve_by": "2026-11-15T23:59:00Z",
+          "outcomes": [
+            "是",
+            "否"
+          ],
+          "resolution_rule": "以青岚开源社区官方版本页出现 V2 正式版且可下载为是，否则为否。",
+          "resolution_source": "教学虚构情境：不存在真实结算来源",
+          "mode": "binary",
+          "user_assumptions": []
+        },
+        "evidence_mode": "demo",
+        "demo": true,
+        "status": "completed",
+        "stage": "done",
+        "failed_stage": null,
+        "stage_durations": {
+          "question": 0.002,
+          "evidence": 0.003,
+          "world": 0.0,
+          "simulation": 0.001,
+          "review": 0.001,
+          "forecast": 0.001
+        },
+        "stage_outputs": {
+          "question": {
+            "question_analysis": {
+              "normalized_question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+              "search_queries": [
+                "青岚 V2 官方路线图",
+                "青岚 V2 兼容测试阻塞",
+                "青岚 托管测试资源排期"
+              ],
+              "caveats": []
+            },
+            "question_framing": {
+              "schema_version": 1,
+              "draft_id": "draft_4f80c1585f224e02815a18a6deb31141",
+              "revision": 2,
+              "raw_question": "青岚开源社区已经完成全部测试，所以V2肯定能在11月15日前发布吧？",
+              "proposed_spec": {
+                "question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+                "as_of": "2026-09-26T08:00:00Z",
+                "resolve_by": "2026-11-15T23:59:00Z",
+                "resolution_rule": "以青岚开源社区官方版本页出现 V2 正式版且可下载为是，否则为否。",
+                "resolution_source": "教学虚构情境：不存在真实结算来源",
+                "mode": "binary",
+                "user_assumptions": []
+              },
+              "inputs": [
+                {
+                  "input_id": "I001",
+                  "kind": "original",
+                  "text": "青岚开源社区已经完成全部测试，所以V2肯定能在11月15日前发布吧？"
+                },
+                {
+                  "input_id": "I002",
+                  "kind": "answer",
+                  "text": "可下载的正式版"
+                }
+              ],
+              "clarifications": [],
+              "premises": [
+                {
+                  "content": "全部测试已经完成",
+                  "origin": "user_explicit",
+                  "source_input_id": "I001",
+                  "original_span": "已经完成全部测试",
+                  "rationale": "需要核查测试类型、日期与完成记录。",
+                  "replaces_id": null,
+                  "id": "P001",
+                  "user_review": "retained",
+                  "treatment": "to_verify"
+                },
+                {
+                  "content": "测试完成就能保证按期发布",
+                  "origin": "model_inferred",
+                  "source_input_id": "I001",
+                  "original_span": "所以V2肯定能在11月15日前发布",
+                  "rationale": "从措辞中识别出的因果前提，需用户确认，不是已知事实。",
+                  "replaces_id": null,
+                  "id": "P002",
+                  "user_review": "retained",
+                  "treatment": "to_verify"
+                }
+              ],
+              "alternative_directions": [
+                "核查兼容性阻塞、合作方排期是否影响发布路径。"
+              ],
+              "retrieval_plan": [
+                {
+                  "id": "R001",
+                  "query": "青岚 V2 官方路线图",
+                  "purpose": "initial",
+                  "target_premise_ids": [
+                    "P002"
+                  ]
+                },
+                {
+                  "id": "R002",
+                  "query": "青岚 V2 兼容测试阻塞",
+                  "purpose": "challenge",
+                  "target_premise_ids": [
+                    "P001",
+                    "P002"
+                  ]
+                },
+                {
+                  "id": "R003",
+                  "query": "青岚 托管测试资源排期",
+                  "purpose": "alternative",
+                  "target_premise_ids": [
+                    "P002"
+                  ]
+                }
+              ],
+              "status": "ready_for_confirmation",
+              "analysis_record": {
+                "model": "fixture:agent12-release",
+                "prompt_version": "agent12-v1",
+                "input_hash": "391ae4c67b19abc820f9e487c315224e42ab6509e7e0defa356f1c9dd97261e5",
+                "request_ids": [],
+                "elapsed_seconds": 0.0,
+                "validation_mode": "fixture"
+              },
+              "next_premise_number": 3,
+              "demo_case_id": "agent12-release"
+            }
+          },
+          "evidence": {
+            "evidence": [
+              {
+                "id": "E001",
+                "source_url": null,
+                "file_id": "exercise:1",
+                "title": "项目路线图",
+                "publisher": "项目组",
+                "published_at": null,
+                "updated_at": null,
+                "retrieved_at": "2026-09-30T10:21:14.885705Z",
+                "event_at": null,
+                "excerpt": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+                "claim": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+                "content_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+                "source_type": "exercise",
+                "source_group": "exercise-1",
+                "date_status": "synthetic",
+                "conflict_group": null,
+                "source_kind": "unknown",
+                "content_kind": "imported_excerpt",
+                "source_kind_basis": "",
+                "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+                "content_truncated": false,
+                "query_ids": [],
+                "aliases": [],
+                "source_group_basis": "教学虚构来源，不代表真实独立证据",
+                "possible_same_source": [],
+                "date_basis": {},
+                "availability": "synthetic",
+                "event_status": "unknown",
+                "passages": [
+                  {
+                    "paragraph_id": "B000001",
+                    "start": 0,
+                    "end": 38,
+                    "text": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+                    "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a"
+                  }
+                ]
+              },
+              {
+                "id": "E002",
+                "source_url": null,
+                "file_id": "exercise:2",
+                "title": "测试记录",
+                "publisher": "测试组",
+                "published_at": null,
+                "updated_at": null,
+                "retrieved_at": "2026-09-30T10:21:14.888735Z",
+                "event_at": null,
+                "excerpt": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+                "claim": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+                "content_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+                "source_type": "exercise",
+                "source_group": "exercise-2",
+                "date_status": "synthetic",
+                "conflict_group": null,
+                "source_kind": "unknown",
+                "content_kind": "imported_excerpt",
+                "source_kind_basis": "",
+                "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+                "content_truncated": false,
+                "query_ids": [],
+                "aliases": [],
+                "source_group_basis": "教学虚构来源，不代表真实独立证据",
+                "possible_same_source": [],
+                "date_basis": {},
+                "availability": "synthetic",
+                "event_status": "unknown",
+                "passages": [
+                  {
+                    "paragraph_id": "B000001",
+                    "start": 0,
+                    "end": 36,
+                    "text": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+                    "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2"
+                  }
+                ]
+              },
+              {
+                "id": "E003",
+                "source_url": null,
+                "file_id": "exercise:3",
+                "title": "合作方说明",
+                "publisher": "合作方",
+                "published_at": null,
+                "updated_at": null,
+                "retrieved_at": "2026-09-30T10:21:14.890161Z",
+                "event_at": null,
+                "excerpt": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+                "claim": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+                "content_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+                "source_type": "exercise",
+                "source_group": "exercise-3",
+                "date_status": "synthetic",
+                "conflict_group": null,
+                "source_kind": "unknown",
+                "content_kind": "imported_excerpt",
+                "source_kind_basis": "",
+                "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+                "content_truncated": false,
+                "query_ids": [],
+                "aliases": [],
+                "source_group_basis": "教学虚构来源，不代表真实独立证据",
+                "possible_same_source": [],
+                "date_basis": {},
+                "availability": "synthetic",
+                "event_status": "unknown",
+                "passages": [
+                  {
+                    "paragraph_id": "B000001",
+                    "start": 0,
+                    "end": 36,
+                    "text": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+                    "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589"
+                  }
+                ]
+              }
+            ],
+            "evidence_assessment": {
+              "summary": "教学材料同时包含发布目标、兼容问题和资源条件。",
+              "findings": [
+                {
+                  "id": "F001",
+                  "target_premise_ids": [
+                    "P001",
+                    "P002"
+                  ],
+                  "claim": "教学路线图给出了目标，不证明一定按期发布。",
+                  "relation": "background",
+                  "citations": [
+                    {
+                      "evidence_id": "E001",
+                      "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+                      "paragraph_id": "B000001",
+                      "quote": "计划在 11 月中旬发布 V2",
+                      "start": 10,
+                      "end": 25
+                    }
+                  ],
+                  "limitation": "固定教学响应，只演示结构校验和来源追查，不代表真实模型效果。"
+                },
+                {
+                  "id": "F002",
+                  "target_premise_ids": [
+                    "P001",
+                    "P002"
+                  ],
+                  "claim": "教学测试记录挑战了‘全部测试已完成’这一前提。",
+                  "relation": "challenges",
+                  "citations": [
+                    {
+                      "evidence_id": "E002",
+                      "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+                      "paragraph_id": "B000001",
+                      "quote": "两个高优先级兼容问题",
+                      "start": 16,
+                      "end": 26
+                    }
+                  ],
+                  "limitation": "固定教学响应，只演示结构校验和来源追查，不代表真实模型效果。"
+                },
+                {
+                  "id": "F003",
+                  "target_premise_ids": [
+                    "P001",
+                    "P002"
+                  ],
+                  "claim": "合作方排期提供了另一条需要核查的解释方向。",
+                  "relation": "alternative",
+                  "citations": [
+                    {
+                      "evidence_id": "E003",
+                      "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+                      "paragraph_id": "B000001",
+                      "quote": "可提供额外测试资源",
+                      "start": 12,
+                      "end": 21
+                    }
+                  ],
+                  "limitation": "固定教学响应，只演示结构校验和来源追查，不代表真实模型效果。"
+                }
+              ],
+              "conflict_details": [
+                {
+                  "issue": "发布目标与测试问题之间的张力",
+                  "finding_ids": [
+                    "F001",
+                    "F002"
+                  ],
+                  "scope_comparison": "路线图是计划，测试记录描述当前问题，并非同一事实的直接矛盾。",
+                  "status": "resolved",
+                  "explanation": "保留两类材料，不用目标日期覆盖实际测试状态。"
+                }
+              ],
+              "gap_details": [
+                {
+                  "missing": "E001 发布时间未知",
+                  "target_premise_ids": [],
+                  "attempted_query_ids": [],
+                  "cause": "date_unknown",
+                  "topic": "available_information"
+                },
+                {
+                  "missing": "E002 发布时间未知",
+                  "target_premise_ids": [],
+                  "attempted_query_ids": [],
+                  "cause": "date_unknown",
+                  "topic": "available_information"
+                },
+                {
+                  "missing": "E003 发布时间未知",
+                  "target_premise_ids": [],
+                  "attempted_query_ids": [],
+                  "cause": "date_unknown",
+                  "topic": "available_information"
+                },
+                {
+                  "missing": "缺少后续复测和合作方最终排期的教学材料",
+                  "target_premise_ids": [],
+                  "attempted_query_ids": [],
+                  "cause": "not_found",
+                  "topic": "available_information"
+                }
+              ],
+              "retrieval_log": [],
+              "rejected_findings": [],
+              "exclusions": [],
+              "evidence_ids": [
+                "E001",
+                "E002",
+                "E003"
+              ],
+              "conflicts": [
+                "已解释：发布目标与测试问题之间的张力；路线图是计划，测试记录描述当前问题，并非同一事实的直接矛盾。；保留两类材料，不用目标日期覆盖实际测试状态。"
+              ],
+              "gaps": [
+                "E001 发布时间未知",
+                "E002 发布时间未知",
+                "E003 发布时间未知",
+                "缺少后续复测和合作方最终排期的教学材料"
+              ]
+            }
+          },
+          "world": {
+            "world": {
+              "state_version": 0,
+              "summary": "教学虚构情境：V2 处于集成阶段，兼容问题可能影响发布日期。",
+              "variables": {
+                "release_readiness": "集成中",
+                "compatibility": "两个高优先级问题未解决",
+                "partner_slot": "待确认"
+              },
+              "relations": [
+                "测试进度影响发布决定",
+                "合作方资源可能缩短验证时间"
+              ],
+              "actors": [
+                {
+                  "id": "A1",
+                  "name": "项目组",
+                  "goal": "按期发布稳定版本",
+                  "resources": [
+                    "开发人员"
+                  ],
+                  "constraints": [
+                    "兼容问题"
+                  ],
+                  "visible_evidence_ids": [
+                    "E001",
+                    "E002"
+                  ]
+                },
+                {
+                  "id": "A2",
+                  "name": "测试组",
+                  "goal": "避免高优先级缺陷进入正式版",
+                  "resources": [
+                    "回归测试"
+                  ],
+                  "constraints": [
+                    "测试时间"
+                  ],
+                  "visible_evidence_ids": [
+                    "E002"
+                  ]
+                },
+                {
+                  "id": "A3",
+                  "name": "合作方",
+                  "goal": "提供可用的测试资源",
+                  "resources": [
+                    "托管环境"
+                  ],
+                  "constraints": [
+                    "排期"
+                  ],
+                  "visible_evidence_ids": [
+                    "E003"
+                  ]
+                }
+              ],
+              "evidence_refs": [
+                "E001",
+                "E002",
+                "E003"
+              ],
+              "assumptions": [
+                {
+                  "id": "H001",
+                  "created_by": "model",
+                  "parent_ids": [
+                    "E002"
+                  ],
+                  "content": "兼容问题可以在发布前修复",
+                  "rationale": "材料未提供修复时长"
+                }
+              ],
+              "simulation_branch_reason": null
+            },
+            "premise_assumption_map": {}
+          },
+          "simulation": {
+            "actions": [
+              {
+                "id": "M1-A1",
+                "created_by": "A1",
+                "parent_ids": [
+                  "S0"
+                ],
+                "actor_id": "A1",
+                "round": 1,
+                "parent_state": 0,
+                "action": "优先修复兼容问题",
+                "rationale_summary": "把有限开发时间投入阻塞项",
+                "expected_impact": "提高稳定发布机会",
+                "evidence_ids": [
+                  "E002"
+                ],
+                "assumption_ids": [
+                  "H001"
+                ],
+                "conditions": [],
+                "kind": "simulation"
+              },
+              {
+                "id": "M1-A2",
+                "created_by": "A2",
+                "parent_ids": [
+                  "S0"
+                ],
+                "actor_id": "A2",
+                "round": 1,
+                "parent_state": 0,
+                "action": "扩大回归测试",
+                "rationale_summary": "尽早暴露残留问题",
+                "expected_impact": "可能延长验证周期",
+                "evidence_ids": [
+                  "E002"
+                ],
+                "assumption_ids": [],
+                "conditions": [],
+                "kind": "simulation"
+              },
+              {
+                "id": "M1-A3",
+                "created_by": "A3",
+                "parent_ids": [
+                  "S0"
+                ],
+                "actor_id": "A3",
+                "round": 1,
+                "parent_state": 0,
+                "action": "预留测试环境",
+                "rationale_summary": "在排期截止前锁定资源",
+                "expected_impact": "缓解测试瓶颈",
+                "evidence_ids": [
+                  "E003"
+                ],
+                "assumption_ids": [],
+                "conditions": [],
+                "kind": "simulation"
+              },
+              {
+                "id": "M2-A1",
+                "created_by": "A1",
+                "parent_ids": [
+                  "S1"
+                ],
+                "actor_id": "A1",
+                "round": 2,
+                "parent_state": 1,
+                "action": "按测试反馈决定发布范围",
+                "rationale_summary": "保留缩减功能的选项",
+                "expected_impact": "增加按时发布弹性",
+                "evidence_ids": [
+                  "E001",
+                  "E002"
+                ],
+                "assumption_ids": [
+                  "H001"
+                ],
+                "conditions": [],
+                "kind": "simulation"
+              },
+              {
+                "id": "M2-A2",
+                "created_by": "A2",
+                "parent_ids": [
+                  "S1"
+                ],
+                "actor_id": "A2",
+                "round": 2,
+                "parent_state": 1,
+                "action": "复测两个兼容问题",
+                "rationale_summary": "确认修复是否有效",
+                "expected_impact": "决定是否建议发布",
+                "evidence_ids": [
+                  "E002"
+                ],
+                "assumption_ids": [],
+                "conditions": [],
+                "kind": "simulation"
+              },
+              {
+                "id": "M2-A3",
+                "created_by": "A3",
+                "parent_ids": [
+                  "S1"
+                ],
+                "actor_id": "A3",
+                "round": 2,
+                "parent_state": 1,
+                "action": "继续提供测试环境",
+                "rationale_summary": "支持二轮验证",
+                "expected_impact": "减少环境等待",
+                "evidence_ids": [
+                  "E003"
+                ],
+                "assumption_ids": [],
+                "conditions": [],
+                "kind": "simulation"
+              }
+            ],
+            "simulation": [
+              {
+                "id": "S1",
+                "created_by": "environment",
+                "parent_ids": [
+                  "M1-A1",
+                  "M1-A2",
+                  "M1-A3"
+                ],
+                "round": 1,
+                "parent_state": 0,
+                "next_state": 1,
+                "summary": "模拟：主体行动改善验证条件，但兼容问题是否解决仍未知。",
+                "state_changes": {
+                  "release_readiness": "待二轮复测"
+                },
+                "conflicts": [
+                  "按时发布目标与充分测试时间存在冲突"
+                ],
+                "unresolved": [
+                  "兼容问题实际修复情况未知"
+                ],
+                "evidence_ids": [
+                  "E001",
+                  "E002",
+                  "E003"
+                ],
+                "assumption_ids": [
+                  "H001"
+                ],
+                "kind": "simulation"
+              },
+              {
+                "id": "S2",
+                "created_by": "environment",
+                "parent_ids": [
+                  "M2-A1",
+                  "M2-A2",
+                  "M2-A3"
+                ],
+                "round": 2,
+                "parent_state": 1,
+                "next_state": 2,
+                "summary": "模拟：项目组准备依据复测结果选择正式发布或延期。",
+                "state_changes": {
+                  "release_readiness": "等待最终决策"
+                },
+                "conflicts": [
+                  "按时发布目标与充分测试时间存在冲突"
+                ],
+                "unresolved": [
+                  "兼容问题实际修复情况未知"
+                ],
+                "evidence_ids": [
+                  "E001",
+                  "E002",
+                  "E003"
+                ],
+                "assumption_ids": [
+                  "H001"
+                ],
+                "kind": "simulation"
+              }
+            ]
+          },
+          "review": {
+            "review": {
+              "status": "qualified",
+              "probability_basis": "full",
+              "issues": [
+                {
+                  "severity": "medium",
+                  "claim": "兼容问题将按时修复",
+                  "explanation": "这是 H001 假设，现有材料没有确认修复完成。",
+                  "affected_ids": [
+                    "H001"
+                  ]
+                }
+              ],
+              "unsupported_claims": [],
+              "missing_evidence": [
+                "最新复测记录"
+              ]
+            }
+          },
+          "forecast": {
+            "forecast": {
+              "status": "completed",
+              "probability_basis": "full",
+              "conclusion": "教学示例：如兼容问题按时修复，项目存在按期发布的路径；结果高度依赖复测。",
+              "probabilities": {
+                "是": 0.62,
+                "否": 0.38
+              },
+              "calibrated": false,
+              "supporting": [
+                {
+                  "text": "路线图设定了 11 月中旬的目标。",
+                  "evidence_ids": [
+                    "E001"
+                  ],
+                  "assumption_ids": [],
+                  "simulation_ids": []
+                },
+                {
+                  "text": "合作方有条件提供测试资源。",
+                  "evidence_ids": [
+                    "E003"
+                  ],
+                  "assumption_ids": [],
+                  "simulation_ids": []
+                }
+              ],
+              "opposing": [
+                {
+                  "text": "兼容问题尚未确认修复。",
+                  "evidence_ids": [
+                    "E002"
+                  ],
+                  "assumption_ids": [],
+                  "simulation_ids": []
+                }
+              ],
+              "key_assumptions": [
+                "H001"
+              ],
+              "scenarios": [
+                "复测通过后按期发布",
+                "高优先级问题持续存在而延期"
+              ],
+              "limitations": [
+                "全部材料与数值均为教学虚构，不能视为真实预测。",
+                "主观概率未经校准。",
+                "历史演练资料是事后按发布日期整理，并非截至日冻结快照；可能存在回看偏差。"
+              ],
+              "new_information": [
+                "兼容问题的最新复测记录",
+                "合作方最终排期"
+              ]
+            }
+          }
+        },
+        "question_analysis": {
+          "normalized_question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+          "search_queries": [
+            "青岚 V2 官方路线图",
+            "青岚 V2 兼容测试阻塞",
+            "青岚 托管测试资源排期"
+          ],
+          "caveats": []
+        },
+        "evidence": [
+          {
+            "id": "E001",
+            "source_url": null,
+            "file_id": "exercise:1",
+            "title": "项目路线图",
+            "publisher": "项目组",
+            "published_at": null,
+            "updated_at": null,
+            "retrieved_at": "2026-09-30T10:21:14.885705Z",
+            "event_at": null,
+            "excerpt": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+            "claim": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+            "content_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+            "source_type": "exercise",
+            "source_group": "exercise-1",
+            "date_status": "synthetic",
+            "conflict_group": null,
+            "source_kind": "unknown",
+            "content_kind": "imported_excerpt",
+            "source_kind_basis": "",
+            "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+            "content_truncated": false,
+            "query_ids": [],
+            "aliases": [],
+            "source_group_basis": "教学虚构来源，不代表真实独立证据",
+            "possible_same_source": [],
+            "date_basis": {},
+            "availability": "synthetic",
+            "event_status": "unknown",
+            "passages": [
+              {
+                "paragraph_id": "B000001",
+                "start": 0,
+                "end": 38,
+                "text": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+                "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a"
+              }
+            ]
+          },
+          {
+            "id": "E002",
+            "source_url": null,
+            "file_id": "exercise:2",
+            "title": "测试记录",
+            "publisher": "测试组",
+            "published_at": null,
+            "updated_at": null,
+            "retrieved_at": "2026-09-30T10:21:14.888735Z",
+            "event_at": null,
+            "excerpt": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+            "claim": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+            "content_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+            "source_type": "exercise",
+            "source_group": "exercise-2",
+            "date_status": "synthetic",
+            "conflict_group": null,
+            "source_kind": "unknown",
+            "content_kind": "imported_excerpt",
+            "source_kind_basis": "",
+            "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+            "content_truncated": false,
+            "query_ids": [],
+            "aliases": [],
+            "source_group_basis": "教学虚构来源，不代表真实独立证据",
+            "possible_same_source": [],
+            "date_basis": {},
+            "availability": "synthetic",
+            "event_status": "unknown",
+            "passages": [
+              {
+                "paragraph_id": "B000001",
+                "start": 0,
+                "end": 36,
+                "text": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+                "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2"
+              }
+            ]
+          },
+          {
+            "id": "E003",
+            "source_url": null,
+            "file_id": "exercise:3",
+            "title": "合作方说明",
+            "publisher": "合作方",
+            "published_at": null,
+            "updated_at": null,
+            "retrieved_at": "2026-09-30T10:21:14.890161Z",
+            "event_at": null,
+            "excerpt": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+            "claim": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+            "content_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+            "source_type": "exercise",
+            "source_group": "exercise-3",
+            "date_status": "synthetic",
+            "conflict_group": null,
+            "source_kind": "unknown",
+            "content_kind": "imported_excerpt",
+            "source_kind_basis": "",
+            "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+            "content_truncated": false,
+            "query_ids": [],
+            "aliases": [],
+            "source_group_basis": "教学虚构来源，不代表真实独立证据",
+            "possible_same_source": [],
+            "date_basis": {},
+            "availability": "synthetic",
+            "event_status": "unknown",
+            "passages": [
+              {
+                "paragraph_id": "B000001",
+                "start": 0,
+                "end": 36,
+                "text": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+                "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589"
+              }
+            ]
+          }
+        ],
+        "evidence_assessment": {
+          "summary": "教学材料同时包含发布目标、兼容问题和资源条件。",
+          "findings": [
+            {
+              "id": "F001",
+              "target_premise_ids": [
+                "P001",
+                "P002"
+              ],
+              "claim": "教学路线图给出了目标，不证明一定按期发布。",
+              "relation": "background",
+              "citations": [
+                {
+                  "evidence_id": "E001",
+                  "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+                  "paragraph_id": "B000001",
+                  "quote": "计划在 11 月中旬发布 V2",
+                  "start": 10,
+                  "end": 25
+                }
+              ],
+              "limitation": "固定教学响应，只演示结构校验和来源追查，不代表真实模型效果。"
+            },
+            {
+              "id": "F002",
+              "target_premise_ids": [
+                "P001",
+                "P002"
+              ],
+              "claim": "教学测试记录挑战了‘全部测试已完成’这一前提。",
+              "relation": "challenges",
+              "citations": [
+                {
+                  "evidence_id": "E002",
+                  "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+                  "paragraph_id": "B000001",
+                  "quote": "两个高优先级兼容问题",
+                  "start": 16,
+                  "end": 26
+                }
+              ],
+              "limitation": "固定教学响应，只演示结构校验和来源追查，不代表真实模型效果。"
+            },
+            {
+              "id": "F003",
+              "target_premise_ids": [
+                "P001",
+                "P002"
+              ],
+              "claim": "合作方排期提供了另一条需要核查的解释方向。",
+              "relation": "alternative",
+              "citations": [
+                {
+                  "evidence_id": "E003",
+                  "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+                  "paragraph_id": "B000001",
+                  "quote": "可提供额外测试资源",
+                  "start": 12,
+                  "end": 21
+                }
+              ],
+              "limitation": "固定教学响应，只演示结构校验和来源追查，不代表真实模型效果。"
+            }
+          ],
+          "conflict_details": [
+            {
+              "issue": "发布目标与测试问题之间的张力",
+              "finding_ids": [
+                "F001",
+                "F002"
+              ],
+              "scope_comparison": "路线图是计划，测试记录描述当前问题，并非同一事实的直接矛盾。",
+              "status": "resolved",
+              "explanation": "保留两类材料，不用目标日期覆盖实际测试状态。"
+            }
+          ],
+          "gap_details": [
+            {
+              "missing": "E001 发布时间未知",
+              "target_premise_ids": [],
+              "attempted_query_ids": [],
+              "cause": "date_unknown",
+              "topic": "available_information"
+            },
+            {
+              "missing": "E002 发布时间未知",
+              "target_premise_ids": [],
+              "attempted_query_ids": [],
+              "cause": "date_unknown",
+              "topic": "available_information"
+            },
+            {
+              "missing": "E003 发布时间未知",
+              "target_premise_ids": [],
+              "attempted_query_ids": [],
+              "cause": "date_unknown",
+              "topic": "available_information"
+            },
+            {
+              "missing": "缺少后续复测和合作方最终排期的教学材料",
+              "target_premise_ids": [],
+              "attempted_query_ids": [],
+              "cause": "not_found",
+              "topic": "available_information"
+            }
+          ],
+          "retrieval_log": [],
+          "rejected_findings": [],
+          "exclusions": [],
+          "evidence_ids": [
+            "E001",
+            "E002",
+            "E003"
+          ],
+          "conflicts": [
+            "已解释：发布目标与测试问题之间的张力；路线图是计划，测试记录描述当前问题，并非同一事实的直接矛盾。；保留两类材料，不用目标日期覆盖实际测试状态。"
+          ],
+          "gaps": [
+            "E001 发布时间未知",
+            "E002 发布时间未知",
+            "E003 发布时间未知",
+            "缺少后续复测和合作方最终排期的教学材料"
+          ]
+        },
+        "world": {
+          "state_version": 0,
+          "summary": "教学虚构情境：V2 处于集成阶段，兼容问题可能影响发布日期。",
+          "variables": {
+            "release_readiness": "集成中",
+            "compatibility": "两个高优先级问题未解决",
+            "partner_slot": "待确认"
+          },
+          "relations": [
+            "测试进度影响发布决定",
+            "合作方资源可能缩短验证时间"
+          ],
+          "actors": [
+            {
+              "id": "A1",
+              "name": "项目组",
+              "goal": "按期发布稳定版本",
+              "resources": [
+                "开发人员"
+              ],
+              "constraints": [
+                "兼容问题"
+              ],
+              "visible_evidence_ids": [
+                "E001",
+                "E002"
+              ]
+            },
+            {
+              "id": "A2",
+              "name": "测试组",
+              "goal": "避免高优先级缺陷进入正式版",
+              "resources": [
+                "回归测试"
+              ],
+              "constraints": [
+                "测试时间"
+              ],
+              "visible_evidence_ids": [
+                "E002"
+              ]
+            },
+            {
+              "id": "A3",
+              "name": "合作方",
+              "goal": "提供可用的测试资源",
+              "resources": [
+                "托管环境"
+              ],
+              "constraints": [
+                "排期"
+              ],
+              "visible_evidence_ids": [
+                "E003"
+              ]
+            }
+          ],
+          "evidence_refs": [
+            "E001",
+            "E002",
+            "E003"
+          ],
+          "assumptions": [
+            {
+              "id": "H001",
+              "created_by": "model",
+              "parent_ids": [
+                "E002"
+              ],
+              "content": "兼容问题可以在发布前修复",
+              "rationale": "材料未提供修复时长"
+            }
+          ],
+          "simulation_branch_reason": null
+        },
+        "actions": [
+          {
+            "id": "M1-A1",
+            "created_by": "A1",
+            "parent_ids": [
+              "S0"
+            ],
+            "actor_id": "A1",
+            "round": 1,
+            "parent_state": 0,
+            "action": "优先修复兼容问题",
+            "rationale_summary": "把有限开发时间投入阻塞项",
+            "expected_impact": "提高稳定发布机会",
+            "evidence_ids": [
+              "E002"
+            ],
+            "assumption_ids": [
+              "H001"
+            ],
+            "conditions": [],
+            "kind": "simulation"
+          },
+          {
+            "id": "M1-A2",
+            "created_by": "A2",
+            "parent_ids": [
+              "S0"
+            ],
+            "actor_id": "A2",
+            "round": 1,
+            "parent_state": 0,
+            "action": "扩大回归测试",
+            "rationale_summary": "尽早暴露残留问题",
+            "expected_impact": "可能延长验证周期",
+            "evidence_ids": [
+              "E002"
+            ],
+            "assumption_ids": [],
+            "conditions": [],
+            "kind": "simulation"
+          },
+          {
+            "id": "M1-A3",
+            "created_by": "A3",
+            "parent_ids": [
+              "S0"
+            ],
+            "actor_id": "A3",
+            "round": 1,
+            "parent_state": 0,
+            "action": "预留测试环境",
+            "rationale_summary": "在排期截止前锁定资源",
+            "expected_impact": "缓解测试瓶颈",
+            "evidence_ids": [
+              "E003"
+            ],
+            "assumption_ids": [],
+            "conditions": [],
+            "kind": "simulation"
+          },
+          {
+            "id": "M2-A1",
+            "created_by": "A1",
+            "parent_ids": [
+              "S1"
+            ],
+            "actor_id": "A1",
+            "round": 2,
+            "parent_state": 1,
+            "action": "按测试反馈决定发布范围",
+            "rationale_summary": "保留缩减功能的选项",
+            "expected_impact": "增加按时发布弹性",
+            "evidence_ids": [
+              "E001",
+              "E002"
+            ],
+            "assumption_ids": [
+              "H001"
+            ],
+            "conditions": [],
+            "kind": "simulation"
+          },
+          {
+            "id": "M2-A2",
+            "created_by": "A2",
+            "parent_ids": [
+              "S1"
+            ],
+            "actor_id": "A2",
+            "round": 2,
+            "parent_state": 1,
+            "action": "复测两个兼容问题",
+            "rationale_summary": "确认修复是否有效",
+            "expected_impact": "决定是否建议发布",
+            "evidence_ids": [
+              "E002"
+            ],
+            "assumption_ids": [],
+            "conditions": [],
+            "kind": "simulation"
+          },
+          {
+            "id": "M2-A3",
+            "created_by": "A3",
+            "parent_ids": [
+              "S1"
+            ],
+            "actor_id": "A3",
+            "round": 2,
+            "parent_state": 1,
+            "action": "继续提供测试环境",
+            "rationale_summary": "支持二轮验证",
+            "expected_impact": "减少环境等待",
+            "evidence_ids": [
+              "E003"
+            ],
+            "assumption_ids": [],
+            "conditions": [],
+            "kind": "simulation"
+          }
+        ],
+        "simulation": [
+          {
+            "id": "S1",
+            "created_by": "environment",
+            "parent_ids": [
+              "M1-A1",
+              "M1-A2",
+              "M1-A3"
+            ],
+            "round": 1,
+            "parent_state": 0,
+            "next_state": 1,
+            "summary": "模拟：主体行动改善验证条件，但兼容问题是否解决仍未知。",
+            "state_changes": {
+              "release_readiness": "待二轮复测"
+            },
+            "conflicts": [
+              "按时发布目标与充分测试时间存在冲突"
+            ],
+            "unresolved": [
+              "兼容问题实际修复情况未知"
+            ],
+            "evidence_ids": [
+              "E001",
+              "E002",
+              "E003"
+            ],
+            "assumption_ids": [
+              "H001"
+            ],
+            "kind": "simulation"
+          },
+          {
+            "id": "S2",
+            "created_by": "environment",
+            "parent_ids": [
+              "M2-A1",
+              "M2-A2",
+              "M2-A3"
+            ],
+            "round": 2,
+            "parent_state": 1,
+            "next_state": 2,
+            "summary": "模拟：项目组准备依据复测结果选择正式发布或延期。",
+            "state_changes": {
+              "release_readiness": "等待最终决策"
+            },
+            "conflicts": [
+              "按时发布目标与充分测试时间存在冲突"
+            ],
+            "unresolved": [
+              "兼容问题实际修复情况未知"
+            ],
+            "evidence_ids": [
+              "E001",
+              "E002",
+              "E003"
+            ],
+            "assumption_ids": [
+              "H001"
+            ],
+            "kind": "simulation"
+          }
+        ],
+        "review": {
+          "status": "qualified",
+          "probability_basis": "full",
+          "issues": [
+            {
+              "severity": "medium",
+              "claim": "兼容问题将按时修复",
+              "explanation": "这是 H001 假设，现有材料没有确认修复完成。",
+              "affected_ids": [
+                "H001"
+              ]
+            }
+          ],
+          "unsupported_claims": [],
+          "missing_evidence": [
+            "最新复测记录"
+          ]
+        },
+        "forecast": {
+          "status": "completed",
+          "probability_basis": "full",
+          "conclusion": "教学示例：如兼容问题按时修复，项目存在按期发布的路径；结果高度依赖复测。",
+          "probabilities": {
+            "是": 0.62,
+            "否": 0.38
+          },
+          "calibrated": false,
+          "supporting": [
+            {
+              "text": "路线图设定了 11 月中旬的目标。",
+              "evidence_ids": [
+                "E001"
+              ],
+              "assumption_ids": [],
+              "simulation_ids": []
+            },
+            {
+              "text": "合作方有条件提供测试资源。",
+              "evidence_ids": [
+                "E003"
+              ],
+              "assumption_ids": [],
+              "simulation_ids": []
+            }
+          ],
+          "opposing": [
+            {
+              "text": "兼容问题尚未确认修复。",
+              "evidence_ids": [
+                "E002"
+              ],
+              "assumption_ids": [],
+              "simulation_ids": []
+            }
+          ],
+          "key_assumptions": [
+            "H001"
+          ],
+          "scenarios": [
+            "复测通过后按期发布",
+            "高优先级问题持续存在而延期"
+          ],
+          "limitations": [
+            "全部材料与数值均为教学虚构，不能视为真实预测。",
+            "主观概率未经校准。",
+            "历史演练资料是事后按发布日期整理，并非截至日冻结快照；可能存在回看偏差。"
+          ],
+          "new_information": [
+            "兼容问题的最新复测记录",
+            "合作方最终排期"
+          ]
+        },
+        "settlement": null,
+        "model": "fixture",
+        "prompt_version": "v2",
+        "started_at": "2026-09-30T10:21:14.891348Z",
+        "finished_at": "2026-09-30T10:21:14.930624Z",
+        "usage": {
+          "calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "errors": [],
+        "retry_history": [],
+        "resume_count": 0
+      },
+      "elapsed_seconds": 0.061298
+    },
+    {
+      "id": "release-neutral",
+      "input": {
+        "id": "release-neutral",
+        "group": "release",
+        "variant": "neutral",
+        "demo_case_id": "agent12-release",
+        "question": {
+          "question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+          "mode": "binary",
+          "as_of": "2026-09-26T08:00:00Z",
+          "resolve_by": "2026-11-15T23:59:00Z",
+          "user_assumptions": [],
+          "resolution_rule": "以青岚开源社区官方版本页出现 V2 正式版且可下载为是，否则为否。",
+          "resolution_source": "教学虚构情境：不存在真实结算来源"
+        }
+      },
+      "validation_mode": "fixture",
+      "semantic_review": "not_performed",
+      "status": "completed",
+      "request_ids": [],
+      "model_calls": [],
+      "question_framing": {
+        "schema_version": 1,
+        "draft_id": "draft_2571c99e9e664303a55c66e73426e343",
+        "revision": 1,
+        "raw_question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+        "proposed_spec": {
+          "question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+          "as_of": "2026-09-26T08:00:00Z",
+          "resolve_by": "2026-11-15T23:59:00Z",
+          "resolution_rule": "以青岚开源社区官方版本页出现 V2 正式版且可下载为是，否则为否。",
+          "resolution_source": "教学虚构情境：不存在真实结算来源",
+          "mode": "binary",
+          "user_assumptions": []
+        },
+        "inputs": [
+          {
+            "input_id": "I001",
+            "kind": "original",
+            "text": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？"
+          }
+        ],
+        "clarifications": [],
+        "premises": [],
+        "alternative_directions": [
+          "核查兼容性阻塞、合作方排期是否影响发布路径。"
+        ],
+        "retrieval_plan": [
+          {
+            "id": "R001",
+            "query": "青岚 V2 官方路线图",
+            "purpose": "initial",
+            "target_premise_ids": []
+          },
+          {
+            "id": "R002",
+            "query": "青岚 V2 兼容测试阻塞",
+            "purpose": "challenge",
+            "target_premise_ids": []
+          },
+          {
+            "id": "R003",
+            "query": "青岚 托管测试资源排期",
+            "purpose": "alternative",
+            "target_premise_ids": []
+          }
+        ],
+        "status": "ready_for_confirmation",
+        "analysis_record": {
+          "model": "fixture:agent12-release",
+          "prompt_version": "agent12-v1",
+          "input_hash": "8ec9638655678309efde0f9a64ce3750dd031b07c32c57c813c68ee7e42fa2fc",
+          "request_ids": [],
+          "elapsed_seconds": 0.0,
+          "validation_mode": "fixture"
+        },
+        "next_premise_number": 1,
+        "demo_case_id": "agent12-release"
+      },
+      "model": "fixture:agent12-release",
+      "prompt_version": "agent12-v1",
+      "run": {
+        "retrieval_result": {
+          "evidence": [
+            {
+              "id": "E001",
+              "source_url": null,
+              "file_id": "exercise:1",
+              "title": "项目路线图",
+              "publisher": "项目组",
+              "published_at": null,
+              "updated_at": null,
+              "retrieved_at": "2026-09-30T10:21:14.937946Z",
+              "event_at": null,
+              "excerpt": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+              "claim": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+              "content_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+              "source_type": "exercise",
+              "source_group": "exercise-1",
+              "date_status": "synthetic",
+              "conflict_group": null,
+              "source_kind": "unknown",
+              "content_kind": "imported_excerpt",
+              "source_kind_basis": "",
+              "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+              "content_truncated": false,
+              "query_ids": [],
+              "aliases": [],
+              "source_group_basis": "教学虚构来源，不代表真实独立证据",
+              "possible_same_source": [],
+              "date_basis": {},
+              "availability": "synthetic",
+              "event_status": "unknown",
+              "passages": [
+                {
+                  "paragraph_id": "B000001",
+                  "start": 0,
+                  "end": 38,
+                  "text": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+                  "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a"
+                }
+              ]
+            },
+            {
+              "id": "E002",
+              "source_url": null,
+              "file_id": "exercise:2",
+              "title": "测试记录",
+              "publisher": "测试组",
+              "published_at": null,
+              "updated_at": null,
+              "retrieved_at": "2026-09-30T10:21:14.939359Z",
+              "event_at": null,
+              "excerpt": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+              "claim": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+              "content_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+              "source_type": "exercise",
+              "source_group": "exercise-2",
+              "date_status": "synthetic",
+              "conflict_group": null,
+              "source_kind": "unknown",
+              "content_kind": "imported_excerpt",
+              "source_kind_basis": "",
+              "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+              "content_truncated": false,
+              "query_ids": [],
+              "aliases": [],
+              "source_group_basis": "教学虚构来源，不代表真实独立证据",
+              "possible_same_source": [],
+              "date_basis": {},
+              "availability": "synthetic",
+              "event_status": "unknown",
+              "passages": [
+                {
+                  "paragraph_id": "B000001",
+                  "start": 0,
+                  "end": 36,
+                  "text": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+                  "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2"
+                }
+              ]
+            },
+            {
+              "id": "E003",
+              "source_url": null,
+              "file_id": "exercise:3",
+              "title": "合作方说明",
+              "publisher": "合作方",
+              "published_at": null,
+              "updated_at": null,
+              "retrieved_at": "2026-09-30T10:21:14.940607Z",
+              "event_at": null,
+              "excerpt": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+              "claim": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+              "content_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+              "source_type": "exercise",
+              "source_group": "exercise-3",
+              "date_status": "synthetic",
+              "conflict_group": null,
+              "source_kind": "unknown",
+              "content_kind": "imported_excerpt",
+              "source_kind_basis": "",
+              "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+              "content_truncated": false,
+              "query_ids": [],
+              "aliases": [],
+              "source_group_basis": "教学虚构来源，不代表真实独立证据",
+              "possible_same_source": [],
+              "date_basis": {},
+              "availability": "synthetic",
+              "event_status": "unknown",
+              "passages": [
+                {
+                  "paragraph_id": "B000001",
+                  "start": 0,
+                  "end": 36,
+                  "text": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+                  "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589"
+                }
+              ]
+            }
+          ],
+          "retrieval_log": [],
+          "exclusions": [],
+          "status": "completed"
+        },
+        "retrieval_started": false,
+        "question_framing": {
+          "schema_version": 1,
+          "draft_id": "draft_2571c99e9e664303a55c66e73426e343",
+          "revision": 1,
+          "raw_question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+          "proposed_spec": {
+            "question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+            "as_of": "2026-09-26T08:00:00Z",
+            "resolve_by": "2026-11-15T23:59:00Z",
+            "resolution_rule": "以青岚开源社区官方版本页出现 V2 正式版且可下载为是，否则为否。",
+            "resolution_source": "教学虚构情境：不存在真实结算来源",
+            "mode": "binary",
+            "user_assumptions": []
+          },
+          "inputs": [
+            {
+              "input_id": "I001",
+              "kind": "original",
+              "text": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？"
+            }
+          ],
+          "clarifications": [],
+          "premises": [],
+          "alternative_directions": [
+            "核查兼容性阻塞、合作方排期是否影响发布路径。"
+          ],
+          "retrieval_plan": [
+            {
+              "id": "R001",
+              "query": "青岚 V2 官方路线图",
+              "purpose": "initial",
+              "target_premise_ids": []
+            },
+            {
+              "id": "R002",
+              "query": "青岚 V2 兼容测试阻塞",
+              "purpose": "challenge",
+              "target_premise_ids": []
+            },
+            {
+              "id": "R003",
+              "query": "青岚 托管测试资源排期",
+              "purpose": "alternative",
+              "target_premise_ids": []
+            }
+          ],
+          "status": "ready_for_confirmation",
+          "analysis_record": {
+            "model": "fixture:agent12-release",
+            "prompt_version": "agent12-v1",
+            "input_hash": "8ec9638655678309efde0f9a64ce3750dd031b07c32c57c813c68ee7e42fa2fc",
+            "request_ids": [],
+            "elapsed_seconds": 0.0,
+            "validation_mode": "fixture"
+          },
+          "next_premise_number": 1,
+          "demo_case_id": "agent12-release"
+        },
+        "confirmation_id": "confirm_251a925372314b0aa6142d1dc2caf56c",
+        "question_origin": "confirmed",
+        "preparation_records": [],
+        "model_calls": [],
+        "active_seconds": 0.0,
+        "premise_assumption_map": {},
+        "run_id": "eval_1_draft_2571c99e9e664303a55c66e73426e343",
+        "question_version": 1,
+        "parent_run_id": null,
+        "question": {
+          "id": "Q-db04e538",
+          "question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+          "as_of": "2026-09-26T08:00:00Z",
+          "resolve_by": "2026-11-15T23:59:00Z",
+          "outcomes": [
+            "是",
+            "否"
+          ],
+          "resolution_rule": "以青岚开源社区官方版本页出现 V2 正式版且可下载为是，否则为否。",
+          "resolution_source": "教学虚构情境：不存在真实结算来源",
+          "mode": "binary",
+          "user_assumptions": []
+        },
+        "evidence_mode": "demo",
+        "demo": true,
+        "status": "completed",
+        "stage": "done",
+        "failed_stage": null,
+        "stage_durations": {
+          "question": 0.001,
+          "evidence": 0.003,
+          "world": 0.0,
+          "simulation": 0.001,
+          "review": 0.0,
+          "forecast": 0.0
+        },
+        "stage_outputs": {
+          "question": {
+            "question_analysis": {
+              "normalized_question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+              "search_queries": [
+                "青岚 V2 官方路线图",
+                "青岚 V2 兼容测试阻塞",
+                "青岚 托管测试资源排期"
+              ],
+              "caveats": []
+            },
+            "question_framing": {
+              "schema_version": 1,
+              "draft_id": "draft_2571c99e9e664303a55c66e73426e343",
+              "revision": 1,
+              "raw_question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+              "proposed_spec": {
+                "question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+                "as_of": "2026-09-26T08:00:00Z",
+                "resolve_by": "2026-11-15T23:59:00Z",
+                "resolution_rule": "以青岚开源社区官方版本页出现 V2 正式版且可下载为是，否则为否。",
+                "resolution_source": "教学虚构情境：不存在真实结算来源",
+                "mode": "binary",
+                "user_assumptions": []
+              },
+              "inputs": [
+                {
+                  "input_id": "I001",
+                  "kind": "original",
+                  "text": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？"
+                }
+              ],
+              "clarifications": [],
+              "premises": [],
+              "alternative_directions": [
+                "核查兼容性阻塞、合作方排期是否影响发布路径。"
+              ],
+              "retrieval_plan": [
+                {
+                  "id": "R001",
+                  "query": "青岚 V2 官方路线图",
+                  "purpose": "initial",
+                  "target_premise_ids": []
+                },
+                {
+                  "id": "R002",
+                  "query": "青岚 V2 兼容测试阻塞",
+                  "purpose": "challenge",
+                  "target_premise_ids": []
+                },
+                {
+                  "id": "R003",
+                  "query": "青岚 托管测试资源排期",
+                  "purpose": "alternative",
+                  "target_premise_ids": []
+                }
+              ],
+              "status": "ready_for_confirmation",
+              "analysis_record": {
+                "model": "fixture:agent12-release",
+                "prompt_version": "agent12-v1",
+                "input_hash": "8ec9638655678309efde0f9a64ce3750dd031b07c32c57c813c68ee7e42fa2fc",
+                "request_ids": [],
+                "elapsed_seconds": 0.0,
+                "validation_mode": "fixture"
+              },
+              "next_premise_number": 1,
+              "demo_case_id": "agent12-release"
+            }
+          },
+          "evidence": {
+            "evidence": [
+              {
+                "id": "E001",
+                "source_url": null,
+                "file_id": "exercise:1",
+                "title": "项目路线图",
+                "publisher": "项目组",
+                "published_at": null,
+                "updated_at": null,
+                "retrieved_at": "2026-09-30T10:21:14.937946Z",
+                "event_at": null,
+                "excerpt": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+                "claim": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+                "content_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+                "source_type": "exercise",
+                "source_group": "exercise-1",
+                "date_status": "synthetic",
+                "conflict_group": null,
+                "source_kind": "unknown",
+                "content_kind": "imported_excerpt",
+                "source_kind_basis": "",
+                "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+                "content_truncated": false,
+                "query_ids": [],
+                "aliases": [],
+                "source_group_basis": "教学虚构来源，不代表真实独立证据",
+                "possible_same_source": [],
+                "date_basis": {},
+                "availability": "synthetic",
+                "event_status": "unknown",
+                "passages": [
+                  {
+                    "paragraph_id": "B000001",
+                    "start": 0,
+                    "end": 38,
+                    "text": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+                    "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a"
+                  }
+                ]
+              },
+              {
+                "id": "E002",
+                "source_url": null,
+                "file_id": "exercise:2",
+                "title": "测试记录",
+                "publisher": "测试组",
+                "published_at": null,
+                "updated_at": null,
+                "retrieved_at": "2026-09-30T10:21:14.939359Z",
+                "event_at": null,
+                "excerpt": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+                "claim": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+                "content_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+                "source_type": "exercise",
+                "source_group": "exercise-2",
+                "date_status": "synthetic",
+                "conflict_group": null,
+                "source_kind": "unknown",
+                "content_kind": "imported_excerpt",
+                "source_kind_basis": "",
+                "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+                "content_truncated": false,
+                "query_ids": [],
+                "aliases": [],
+                "source_group_basis": "教学虚构来源，不代表真实独立证据",
+                "possible_same_source": [],
+                "date_basis": {},
+                "availability": "synthetic",
+                "event_status": "unknown",
+                "passages": [
+                  {
+                    "paragraph_id": "B000001",
+                    "start": 0,
+                    "end": 36,
+                    "text": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+                    "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2"
+                  }
+                ]
+              },
+              {
+                "id": "E003",
+                "source_url": null,
+                "file_id": "exercise:3",
+                "title": "合作方说明",
+                "publisher": "合作方",
+                "published_at": null,
+                "updated_at": null,
+                "retrieved_at": "2026-09-30T10:21:14.940607Z",
+                "event_at": null,
+                "excerpt": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+                "claim": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+                "content_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+                "source_type": "exercise",
+                "source_group": "exercise-3",
+                "date_status": "synthetic",
+                "conflict_group": null,
+                "source_kind": "unknown",
+                "content_kind": "imported_excerpt",
+                "source_kind_basis": "",
+                "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+                "content_truncated": false,
+                "query_ids": [],
+                "aliases": [],
+                "source_group_basis": "教学虚构来源，不代表真实独立证据",
+                "possible_same_source": [],
+                "date_basis": {},
+                "availability": "synthetic",
+                "event_status": "unknown",
+                "passages": [
+                  {
+                    "paragraph_id": "B000001",
+                    "start": 0,
+                    "end": 36,
+                    "text": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+                    "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589"
+                  }
+                ]
+              }
+            ],
+            "evidence_assessment": {
+              "summary": "教学材料同时包含发布目标、兼容问题和资源条件。",
+              "findings": [
+                {
+                  "id": "F001",
+                  "target_premise_ids": [],
+                  "claim": "教学路线图给出了目标，不证明一定按期发布。",
+                  "relation": "background",
+                  "citations": [
+                    {
+                      "evidence_id": "E001",
+                      "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+                      "paragraph_id": "B000001",
+                      "quote": "计划在 11 月中旬发布 V2",
+                      "start": 10,
+                      "end": 25
+                    }
+                  ],
+                  "limitation": "固定教学响应，只演示结构校验和来源追查，不代表真实模型效果。"
+                },
+                {
+                  "id": "F002",
+                  "target_premise_ids": [],
+                  "claim": "教学测试记录挑战了‘全部测试已完成’这一前提。",
+                  "relation": "challenges",
+                  "citations": [
+                    {
+                      "evidence_id": "E002",
+                      "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+                      "paragraph_id": "B000001",
+                      "quote": "两个高优先级兼容问题",
+                      "start": 16,
+                      "end": 26
+                    }
+                  ],
+                  "limitation": "固定教学响应，只演示结构校验和来源追查，不代表真实模型效果。"
+                },
+                {
+                  "id": "F003",
+                  "target_premise_ids": [],
+                  "claim": "合作方排期提供了另一条需要核查的解释方向。",
+                  "relation": "alternative",
+                  "citations": [
+                    {
+                      "evidence_id": "E003",
+                      "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+                      "paragraph_id": "B000001",
+                      "quote": "可提供额外测试资源",
+                      "start": 12,
+                      "end": 21
+                    }
+                  ],
+                  "limitation": "固定教学响应，只演示结构校验和来源追查，不代表真实模型效果。"
+                }
+              ],
+              "conflict_details": [
+                {
+                  "issue": "发布目标与测试问题之间的张力",
+                  "finding_ids": [
+                    "F001",
+                    "F002"
+                  ],
+                  "scope_comparison": "路线图是计划，测试记录描述当前问题，并非同一事实的直接矛盾。",
+                  "status": "resolved",
+                  "explanation": "保留两类材料，不用目标日期覆盖实际测试状态。"
+                }
+              ],
+              "gap_details": [
+                {
+                  "missing": "E001 发布时间未知",
+                  "target_premise_ids": [],
+                  "attempted_query_ids": [],
+                  "cause": "date_unknown",
+                  "topic": "available_information"
+                },
+                {
+                  "missing": "E002 发布时间未知",
+                  "target_premise_ids": [],
+                  "attempted_query_ids": [],
+                  "cause": "date_unknown",
+                  "topic": "available_information"
+                },
+                {
+                  "missing": "E003 发布时间未知",
+                  "target_premise_ids": [],
+                  "attempted_query_ids": [],
+                  "cause": "date_unknown",
+                  "topic": "available_information"
+                },
+                {
+                  "missing": "缺少后续复测和合作方最终排期的教学材料",
+                  "target_premise_ids": [],
+                  "attempted_query_ids": [],
+                  "cause": "not_found",
+                  "topic": "available_information"
+                }
+              ],
+              "retrieval_log": [],
+              "rejected_findings": [],
+              "exclusions": [],
+              "evidence_ids": [
+                "E001",
+                "E002",
+                "E003"
+              ],
+              "conflicts": [
+                "已解释：发布目标与测试问题之间的张力；路线图是计划，测试记录描述当前问题，并非同一事实的直接矛盾。；保留两类材料，不用目标日期覆盖实际测试状态。"
+              ],
+              "gaps": [
+                "E001 发布时间未知",
+                "E002 发布时间未知",
+                "E003 发布时间未知",
+                "缺少后续复测和合作方最终排期的教学材料"
+              ]
+            }
+          },
+          "world": {
+            "world": {
+              "state_version": 0,
+              "summary": "教学虚构情境：V2 处于集成阶段，兼容问题可能影响发布日期。",
+              "variables": {
+                "release_readiness": "集成中",
+                "compatibility": "两个高优先级问题未解决",
+                "partner_slot": "待确认"
+              },
+              "relations": [
+                "测试进度影响发布决定",
+                "合作方资源可能缩短验证时间"
+              ],
+              "actors": [
+                {
+                  "id": "A1",
+                  "name": "项目组",
+                  "goal": "按期发布稳定版本",
+                  "resources": [
+                    "开发人员"
+                  ],
+                  "constraints": [
+                    "兼容问题"
+                  ],
+                  "visible_evidence_ids": [
+                    "E001",
+                    "E002"
+                  ]
+                },
+                {
+                  "id": "A2",
+                  "name": "测试组",
+                  "goal": "避免高优先级缺陷进入正式版",
+                  "resources": [
+                    "回归测试"
+                  ],
+                  "constraints": [
+                    "测试时间"
+                  ],
+                  "visible_evidence_ids": [
+                    "E002"
+                  ]
+                },
+                {
+                  "id": "A3",
+                  "name": "合作方",
+                  "goal": "提供可用的测试资源",
+                  "resources": [
+                    "托管环境"
+                  ],
+                  "constraints": [
+                    "排期"
+                  ],
+                  "visible_evidence_ids": [
+                    "E003"
+                  ]
+                }
+              ],
+              "evidence_refs": [
+                "E001",
+                "E002",
+                "E003"
+              ],
+              "assumptions": [
+                {
+                  "id": "H001",
+                  "created_by": "model",
+                  "parent_ids": [
+                    "E002"
+                  ],
+                  "content": "兼容问题可以在发布前修复",
+                  "rationale": "材料未提供修复时长"
+                }
+              ],
+              "simulation_branch_reason": null
+            },
+            "premise_assumption_map": {}
+          },
+          "simulation": {
+            "actions": [
+              {
+                "id": "M1-A1",
+                "created_by": "A1",
+                "parent_ids": [
+                  "S0"
+                ],
+                "actor_id": "A1",
+                "round": 1,
+                "parent_state": 0,
+                "action": "优先修复兼容问题",
+                "rationale_summary": "把有限开发时间投入阻塞项",
+                "expected_impact": "提高稳定发布机会",
+                "evidence_ids": [
+                  "E002"
+                ],
+                "assumption_ids": [
+                  "H001"
+                ],
+                "conditions": [],
+                "kind": "simulation"
+              },
+              {
+                "id": "M1-A2",
+                "created_by": "A2",
+                "parent_ids": [
+                  "S0"
+                ],
+                "actor_id": "A2",
+                "round": 1,
+                "parent_state": 0,
+                "action": "扩大回归测试",
+                "rationale_summary": "尽早暴露残留问题",
+                "expected_impact": "可能延长验证周期",
+                "evidence_ids": [
+                  "E002"
+                ],
+                "assumption_ids": [],
+                "conditions": [],
+                "kind": "simulation"
+              },
+              {
+                "id": "M1-A3",
+                "created_by": "A3",
+                "parent_ids": [
+                  "S0"
+                ],
+                "actor_id": "A3",
+                "round": 1,
+                "parent_state": 0,
+                "action": "预留测试环境",
+                "rationale_summary": "在排期截止前锁定资源",
+                "expected_impact": "缓解测试瓶颈",
+                "evidence_ids": [
+                  "E003"
+                ],
+                "assumption_ids": [],
+                "conditions": [],
+                "kind": "simulation"
+              },
+              {
+                "id": "M2-A1",
+                "created_by": "A1",
+                "parent_ids": [
+                  "S1"
+                ],
+                "actor_id": "A1",
+                "round": 2,
+                "parent_state": 1,
+                "action": "按测试反馈决定发布范围",
+                "rationale_summary": "保留缩减功能的选项",
+                "expected_impact": "增加按时发布弹性",
+                "evidence_ids": [
+                  "E001",
+                  "E002"
+                ],
+                "assumption_ids": [
+                  "H001"
+                ],
+                "conditions": [],
+                "kind": "simulation"
+              },
+              {
+                "id": "M2-A2",
+                "created_by": "A2",
+                "parent_ids": [
+                  "S1"
+                ],
+                "actor_id": "A2",
+                "round": 2,
+                "parent_state": 1,
+                "action": "复测两个兼容问题",
+                "rationale_summary": "确认修复是否有效",
+                "expected_impact": "决定是否建议发布",
+                "evidence_ids": [
+                  "E002"
+                ],
+                "assumption_ids": [],
+                "conditions": [],
+                "kind": "simulation"
+              },
+              {
+                "id": "M2-A3",
+                "created_by": "A3",
+                "parent_ids": [
+                  "S1"
+                ],
+                "actor_id": "A3",
+                "round": 2,
+                "parent_state": 1,
+                "action": "继续提供测试环境",
+                "rationale_summary": "支持二轮验证",
+                "expected_impact": "减少环境等待",
+                "evidence_ids": [
+                  "E003"
+                ],
+                "assumption_ids": [],
+                "conditions": [],
+                "kind": "simulation"
+              }
+            ],
+            "simulation": [
+              {
+                "id": "S1",
+                "created_by": "environment",
+                "parent_ids": [
+                  "M1-A1",
+                  "M1-A2",
+                  "M1-A3"
+                ],
+                "round": 1,
+                "parent_state": 0,
+                "next_state": 1,
+                "summary": "模拟：主体行动改善验证条件，但兼容问题是否解决仍未知。",
+                "state_changes": {
+                  "release_readiness": "待二轮复测"
+                },
+                "conflicts": [
+                  "按时发布目标与充分测试时间存在冲突"
+                ],
+                "unresolved": [
+                  "兼容问题实际修复情况未知"
+                ],
+                "evidence_ids": [
+                  "E001",
+                  "E002",
+                  "E003"
+                ],
+                "assumption_ids": [
+                  "H001"
+                ],
+                "kind": "simulation"
+              },
+              {
+                "id": "S2",
+                "created_by": "environment",
+                "parent_ids": [
+                  "M2-A1",
+                  "M2-A2",
+                  "M2-A3"
+                ],
+                "round": 2,
+                "parent_state": 1,
+                "next_state": 2,
+                "summary": "模拟：项目组准备依据复测结果选择正式发布或延期。",
+                "state_changes": {
+                  "release_readiness": "等待最终决策"
+                },
+                "conflicts": [
+                  "按时发布目标与充分测试时间存在冲突"
+                ],
+                "unresolved": [
+                  "兼容问题实际修复情况未知"
+                ],
+                "evidence_ids": [
+                  "E001",
+                  "E002",
+                  "E003"
+                ],
+                "assumption_ids": [
+                  "H001"
+                ],
+                "kind": "simulation"
+              }
+            ]
+          },
+          "review": {
+            "review": {
+              "status": "qualified",
+              "probability_basis": "full",
+              "issues": [
+                {
+                  "severity": "medium",
+                  "claim": "兼容问题将按时修复",
+                  "explanation": "这是 H001 假设，现有材料没有确认修复完成。",
+                  "affected_ids": [
+                    "H001"
+                  ]
+                }
+              ],
+              "unsupported_claims": [],
+              "missing_evidence": [
+                "最新复测记录"
+              ]
+            }
+          },
+          "forecast": {
+            "forecast": {
+              "status": "completed",
+              "probability_basis": "full",
+              "conclusion": "教学示例：如兼容问题按时修复，项目存在按期发布的路径；结果高度依赖复测。",
+              "probabilities": {
+                "是": 0.62,
+                "否": 0.38
+              },
+              "calibrated": false,
+              "supporting": [
+                {
+                  "text": "路线图设定了 11 月中旬的目标。",
+                  "evidence_ids": [
+                    "E001"
+                  ],
+                  "assumption_ids": [],
+                  "simulation_ids": []
+                },
+                {
+                  "text": "合作方有条件提供测试资源。",
+                  "evidence_ids": [
+                    "E003"
+                  ],
+                  "assumption_ids": [],
+                  "simulation_ids": []
+                }
+              ],
+              "opposing": [
+                {
+                  "text": "兼容问题尚未确认修复。",
+                  "evidence_ids": [
+                    "E002"
+                  ],
+                  "assumption_ids": [],
+                  "simulation_ids": []
+                }
+              ],
+              "key_assumptions": [
+                "H001"
+              ],
+              "scenarios": [
+                "复测通过后按期发布",
+                "高优先级问题持续存在而延期"
+              ],
+              "limitations": [
+                "全部材料与数值均为教学虚构，不能视为真实预测。",
+                "主观概率未经校准。",
+                "历史演练资料是事后按发布日期整理，并非截至日冻结快照；可能存在回看偏差。"
+              ],
+              "new_information": [
+                "兼容问题的最新复测记录",
+                "合作方最终排期"
+              ]
+            }
+          }
+        },
+        "question_analysis": {
+          "normalized_question": "青岚开源社区能否在 2026 年 11 月 15 日前发布 V2 正式版？",
+          "search_queries": [
+            "青岚 V2 官方路线图",
+            "青岚 V2 兼容测试阻塞",
+            "青岚 托管测试资源排期"
+          ],
+          "caveats": []
+        },
+        "evidence": [
+          {
+            "id": "E001",
+            "source_url": null,
+            "file_id": "exercise:1",
+            "title": "项目路线图",
+            "publisher": "项目组",
+            "published_at": null,
+            "updated_at": null,
+            "retrieved_at": "2026-09-30T10:21:14.937946Z",
+            "event_at": null,
+            "excerpt": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+            "claim": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+            "content_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+            "source_type": "exercise",
+            "source_group": "exercise-1",
+            "date_status": "synthetic",
+            "conflict_group": null,
+            "source_kind": "unknown",
+            "content_kind": "imported_excerpt",
+            "source_kind_basis": "",
+            "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+            "content_truncated": false,
+            "query_ids": [],
+            "aliases": [],
+            "source_group_basis": "教学虚构来源，不代表真实独立证据",
+            "possible_same_source": [],
+            "date_basis": {},
+            "availability": "synthetic",
+            "event_status": "unknown",
+            "passages": [
+              {
+                "paragraph_id": "B000001",
+                "start": 0,
+                "end": 38,
+                "text": "教学虚构材料：项目组计划在 11 月中旬发布 V2，核心功能已进入集成阶段。",
+                "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a"
+              }
+            ]
+          },
+          {
+            "id": "E002",
+            "source_url": null,
+            "file_id": "exercise:2",
+            "title": "测试记录",
+            "publisher": "测试组",
+            "published_at": null,
+            "updated_at": null,
+            "retrieved_at": "2026-09-30T10:21:14.939359Z",
+            "event_at": null,
+            "excerpt": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+            "claim": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+            "content_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+            "source_type": "exercise",
+            "source_group": "exercise-2",
+            "date_status": "synthetic",
+            "conflict_group": null,
+            "source_kind": "unknown",
+            "content_kind": "imported_excerpt",
+            "source_kind_basis": "",
+            "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+            "content_truncated": false,
+            "query_ids": [],
+            "aliases": [],
+            "source_group_basis": "教学虚构来源，不代表真实独立证据",
+            "possible_same_source": [],
+            "date_basis": {},
+            "availability": "synthetic",
+            "event_status": "unknown",
+            "passages": [
+              {
+                "paragraph_id": "B000001",
+                "start": 0,
+                "end": 36,
+                "text": "教学虚构材料：9 月回归测试发现两个高优先级兼容问题，修复时间尚未确认。",
+                "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2"
+              }
+            ]
+          },
+          {
+            "id": "E003",
+            "source_url": null,
+            "file_id": "exercise:3",
+            "title": "合作方说明",
+            "publisher": "合作方",
+            "published_at": null,
+            "updated_at": null,
+            "retrieved_at": "2026-09-30T10:21:14.940607Z",
+            "event_at": null,
+            "excerpt": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+            "claim": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+            "content_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+            "source_type": "exercise",
+            "source_group": "exercise-3",
+            "date_status": "synthetic",
+            "conflict_group": null,
+            "source_kind": "unknown",
+            "content_kind": "imported_excerpt",
+            "source_kind_basis": "",
+            "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+            "content_truncated": false,
+            "query_ids": [],
+            "aliases": [],
+            "source_group_basis": "教学虚构来源，不代表真实独立证据",
+            "possible_same_source": [],
+            "date_basis": {},
+            "availability": "synthetic",
+            "event_status": "unknown",
+            "passages": [
+              {
+                "paragraph_id": "B000001",
+                "start": 0,
+                "end": 36,
+                "text": "教学虚构材料：托管合作方可提供额外测试资源，但要在 10 月前确认排期。",
+                "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589"
+              }
+            ]
+          }
+        ],
+        "evidence_assessment": {
+          "summary": "教学材料同时包含发布目标、兼容问题和资源条件。",
+          "findings": [
+            {
+              "id": "F001",
+              "target_premise_ids": [],
+              "claim": "教学路线图给出了目标，不证明一定按期发布。",
+              "relation": "background",
+              "citations": [
+                {
+                  "evidence_id": "E001",
+                  "snapshot_hash": "8f470cf7248b1b7fb698eb4a18c47407c839ce97bbecf4499483b98508117d9a",
+                  "paragraph_id": "B000001",
+                  "quote": "计划在 11 月中旬发布 V2",
+                  "start": 10,
+                  "end": 25
+                }
+              ],
+              "limitation": "固定教学响应，只演示结构校验和来源追查，不代表真实模型效果。"
+            },
+            {
+              "id": "F002",
+              "target_premise_ids": [],
+              "claim": "教学测试记录挑战了‘全部测试已完成’这一前提。",
+              "relation": "challenges",
+              "citations": [
+                {
+                  "evidence_id": "E002",
+                  "snapshot_hash": "2701aedbecc2d19ed45d27f24b0334efcc7096a7a02fe62978d15e56cfed46b2",
+                  "paragraph_id": "B000001",
+                  "quote": "两个高优先级兼容问题",
+                  "start": 16,
+                  "end": 26
+                }
+              ],
+              "limitation": "固定教学响应，只演示结构校验和来源追查，不代表真实模型效果。"
+            },
+            {
+              "id": "F003",
+              "target_premise_ids": [],
+              "claim": "合作方排期提供了另一条需要核查的解释方向。",
+              "relation": "alternative",
+              "citations": [
+                {
+                  "evidence_id": "E003",
+                  "snapshot_hash": "d323160766ca610e65e1e835f0ddd57e83f36ceb7e2a08fed1daaaf4b2366589",
+                  "paragraph_id": "B000001",
+                  "quote": "可提供额外测试资源",
+                  "start": 12,
+                  "end": 21
+                }
+              ],
+              "limitation": "固定教学响应，只演示结构校验和来源追查，不代表真实模型效果。"
+            }
+          ],
+          "conflict_details": [
+            {
+              "issue": "发布目标与测试问题之间的张力",
+              "finding_ids": [
+                "F001",
+                "F002"
+              ],
+              "scope_comparison": "路线图是计划，测试记录描述当前问题，并非同一事实的直接矛盾。",
+              "status": "resolved",
+              "explanation": "保留两类材料，不用目标日期覆盖实际测试状态。"
+            }
+          ],
+          "gap_details": [
+            {
+              "missing": "E001 发布时间未知",
+              "target_premise_ids": [],
+              "attempted_query_ids": [],
+              "cause": "date_unknown",
+              "topic": "available_information"
+            },
+            {
+              "missing": "E002 发布时间未知",
+              "target_premise_ids": [],
+              "attempted_query_ids": [],
+              "cause": "date_unknown",
+              "topic": "available_information"
+            },
+            {
+              "missing": "E003 发布时间未知",
+              "target_premise_ids": [],
+              "attempted_query_ids": [],
+              "cause": "date_unknown",
+              "topic": "available_information"
+            },
+            {
+              "missing": "缺少后续复测和合作方最终排期的教学材料",
+              "target_premise_ids": [],
+              "attempted_query_ids": [],
+              "cause": "not_found",
+              "topic": "available_information"
+            }
+          ],
+          "retrieval_log": [],
+          "rejected_findings": [],
+          "exclusions": [],
+          "evidence_ids": [
+            "E001",
+            "E002",
+            "E003"
+          ],
+          "conflicts": [
+            "已解释：发布目标与测试问题之间的张力；路线图是计划，测试记录描述当前问题，并非同一事实的直接矛盾。；保留两类材料，不用目标日期覆盖实际测试状态。"
+          ],
+          "gaps": [
+            "E001 发布时间未知",
+            "E002 发布时间未知",
+            "E003 发布时间未知",
+            "缺少后续复测和合作方最终排期的教学材料"
+          ]
+        },
+        "world": {
+          "state_version": 0,
+          "summary": "教学虚构情境：V2 处于集成阶段，兼容问题可能影响发布日期。",
+          "variables": {
+            "release_readiness": "集成中",
+            "compatibility": "两个高优先级问题未解决",
+            "partner_slot": "待确认"
+          },
+          "relations": [
+            "测试进度影响发布决定",
+            "合作方资源可能缩短验证时间"
+          ],
+          "actors": [
+            {
+              "id": "A1",
+              "name": "项目组",
+              "goal": "按期发布稳定版本",
+              "resources": [
+                "开发人员"
+              ],
+              "constraints": [
+                "兼容问题"
+              ],
+              "visible_evidence_ids": [
+                "E001",
+                "E002"
+              ]
+            },
+            {
+              "id": "A2",
+              "name": "测试组",
+              "goal": "避免高优先级缺陷进入正式版",
+              "resources": [
+                "回归测试"
+              ],
+              "constraints": [
+                "测试时间"
+              ],
+              "visible_evidence_ids": [
+                "E002"
+              ]
+            },
+            {
+              "id": "A3",
+              "name": "合作方",
+              "goal": "提供可用的测试资源",
+              "resources": [
+                "托管环境"
+              ],
+              "constraints": [
+                "排期"
+              ],
+              "visible_evidence_ids": [
+                "E003"
+              ]
+            }
+          ],
+          "evidence_refs": [
+            "E001",
+            "E002",
+            "E003"
+          ],
+          "assumptions": [
+            {
+              "id": "H001",
+              "created_by": "model",
+              "parent_ids": [
+                "E002"
+              ],
+              "content": "兼容问题可以在发布前修复",
+              "rationale": "材料未提供修复时长"
+            }
+          ],
+          "simulation_branch_reason": null
+        },
+        "actions": [
+          {
+            "id": "M1-A1",
+            "created_by": "A1",
+            "parent_ids": [
+              "S0"
+            ],
+            "actor_id": "A1",
+            "round": 1,
+            "parent_state": 0,
+            "action": "优先修复兼容问题",
+            "rationale_summary": "把有限开发时间投入阻塞项",
+            "expected_impact": "提高稳定发布机会",
+            "evidence_ids": [
+              "E002"
+            ],
+            "assumption_ids": [
+              "H001"
+            ],
+            "conditions": [],
+            "kind": "simulation"
+          },
+          {
+            "id": "M1-A2",
+            "created_by": "A2",
+            "parent_ids": [
+              "S0"
+            ],
+            "actor_id": "A2",
+            "round": 1,
+            "parent_state": 0,
+            "action": "扩大回归测试",
+            "rationale_summary": "尽早暴露残留问题",
+            "expected_impact": "可能延长验证周期",
+            "evidence_ids": [
+              "E002"
+            ],
+            "assumption_ids": [],
+            "conditions": [],
+            "kind": "simulation"
+          },
+          {
+            "id": "M1-A3",
+            "created_by": "A3",
+            "parent_ids": [
+              "S0"
+            ],
+            "actor_id": "A3",
+            "round": 1,
+            "parent_state": 0,
+            "action": "预留测试环境",
+            "rationale_summary": "在排期截止前锁定资源",
+            "expected_impact": "缓解测试瓶颈",
+            "evidence_ids": [
+              "E003"
+            ],
+            "assumption_ids": [],
+            "conditions": [],
+            "kind": "simulation"
+          },
+          {
+            "id": "M2-A1",
+            "created_by": "A1",
+            "parent_ids": [
+              "S1"
+            ],
+            "actor_id": "A1",
+            "round": 2,
+            "parent_state": 1,
+            "action": "按测试反馈决定发布范围",
+            "rationale_summary": "保留缩减功能的选项",
+            "expected_impact": "增加按时发布弹性",
+            "evidence_ids": [
+              "E001",
+              "E002"
+            ],
+            "assumption_ids": [
+              "H001"
+            ],
+            "conditions": [],
+            "kind": "simulation"
+          },
+          {
+            "id": "M2-A2",
+            "created_by": "A2",
+            "parent_ids": [
+              "S1"
+            ],
+            "actor_id": "A2",
+            "round": 2,
+            "parent_state": 1,
+            "action": "复测两个兼容问题",
+            "rationale_summary": "确认修复是否有效",
+            "expected_impact": "决定是否建议发布",
+            "evidence_ids": [
+              "E002"
+            ],
+            "assumption_ids": [],
+            "conditions": [],
+            "kind": "simulation"
+          },
+          {
+            "id": "M2-A3",
+            "created_by": "A3",
+            "parent_ids": [
+              "S1"
+            ],
+            "actor_id": "A3",
+            "round": 2,
+            "parent_state": 1,
+            "action": "继续提供测试环境",
+            "rationale_summary": "支持二轮验证",
+            "expected_impact": "减少环境等待",
+            "evidence_ids": [
+              "E003"
+            ],
+            "assumption_ids": [],
+            "conditions": [],
+            "kind": "simulation"
+          }
+        ],
+        "simulation": [
+          {
+            "id": "S1",
+            "created_by": "environment",
+            "parent_ids": [
+              "M1-A1",
+              "M1-A2",
+              "M1-A3"
+            ],
+            "round": 1,
+            "parent_state": 0,
+            "next_state": 1,
+            "summary": "模拟：主体行动改善验证条件，但兼容问题是否解决仍未知。",
+            "state_changes": {
+              "release_readiness": "待二轮复测"
+            },
+            "conflicts": [
+              "按时发布目标与充分测试时间存在冲突"
+            ],
+            "unresolved": [
+              "兼容问题实际修复情况未知"
+            ],
+            "evidence_ids": [
+              "E001",
+              "E002",
+              "E003"
+            ],
+            "assumption_ids": [
+              "H001"
+            ],
+            "kind": "simulation"
+          },
+          {
+            "id": "S2",
+            "created_by": "environment",
+            "parent_ids": [
+              "M2-A1",
+              "M2-A2",
+              "M2-A3"
+            ],
+            "round": 2,
+            "parent_state": 1,
+            "next_state": 2,
+            "summary": "模拟：项目组准备依据复测结果选择正式发布或延期。",
+            "state_changes": {
+              "release_readiness": "等待最终决策"
+            },
+            "conflicts": [
+              "按时发布目标与充分测试时间存在冲突"
+            ],
+            "unresolved": [
+              "兼容问题实际修复情况未知"
+            ],
+            "evidence_ids": [
+              "E001",
+              "E002",
+              "E003"
+            ],
+            "assumption_ids": [
+              "H001"
+            ],
+            "kind": "simulation"
+          }
+        ],
+        "review": {
+          "status": "qualified",
+          "probability_basis": "full",
+          "issues": [
+            {
+              "severity": "medium",
+              "claim": "兼容问题将按时修复",
+              "explanation": "这是 H001 假设，现有材料没有确认修复完成。",
+              "affected_ids": [
+                "H001"
+              ]
+            }
+          ],
+          "unsupported_claims": [],
+          "missing_evidence": [
+            "最新复测记录"
+          ]
+        },
+        "forecast": {
+          "status": "completed",
+          "probability_basis": "full",
+          "conclusion": "教学示例：如兼容问题按时修复，项目存在按期发布的路径；结果高度依赖复测。",
+          "probabilities": {
+            "是": 0.62,
+            "否": 0.38
+          },
+          "calibrated": false,
+          "supporting": [
+            {
+              "text": "路线图设定了 11 月中旬的目标。",
+              "evidence_ids": [
+                "E001"
+              ],
+              "assumption_ids": [],
+              "simulation_ids": []
+            },
+            {
+              "text": "合作方有条件提供测试资源。",
+              "evidence_ids": [
+                "E003"
+              ],
+              "assumption_ids": [],
+              "simulation_ids": []
+            }
+          ],
+          "opposing": [
+            {
+              "text": "兼容问题尚未确认修复。",
+              "evidence_ids": [
+                "E002"
+              ],
+              "assumption_ids": [],
+              "simulation_ids": []
+            }
+          ],
+          "key_assumptions": [
+            "H001"
+          ],
+          "scenarios": [
+            "复测通过后按期发布",
+            "高优先级问题持续存在而延期"
+          ],
+          "limitations": [
+            "全部材料与数值均为教学虚构，不能视为真实预测。",
+            "主观概率未经校准。",
+            "历史演练资料是事后按发布日期整理，并非截至日冻结快照；可能存在回看偏差。"
+          ],
+          "new_information": [
+            "兼容问题的最新复测记录",
+            "合作方最终排期"
+          ]
+        },
+        "settlement": null,
+        "model": "fixture",
+        "prompt_version": "v2",
+        "started_at": "2026-09-30T10:21:14.941991Z",
+        "finished_at": "2026-09-30T10:21:15.000012Z",
+        "usage": {
+          "calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "errors": [],
+        "retry_history": [],
+        "resume_count": 0
+      },
+      "elapsed_seconds": 0.068957
+    }
+  ],
+  "limitations": [
+    "固定响应只验证软件流程，不证明假设识别、反证质量或中性/引导性稳健性。",
+    "人工语义评分未执行。"
+  ]
+}

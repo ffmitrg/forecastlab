@@ -21,8 +21,14 @@ class FakeResponse:
     def raise_for_status(self):
         pass
 
-    def json(self):
-        return {"results": self.results}
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        pass
+
+    def iter_bytes(self):
+        yield json.dumps({"results": self.results}).encode()
 
 
 def test_online_search_is_concurrent_but_keeps_query_order(monkeypatch, tmp_path):
@@ -49,7 +55,7 @@ def test_online_search_is_concurrent_but_keeps_query_order(monkeypatch, tmp_path
         def __exit__(self, *_):
             pass
 
-        def post(self, url, json):
+        def stream(self, method, url, json):
             assert url == "https://api.tavily.com/search"
             barrier.wait(timeout=2)
             time.sleep({"first": .06, "second": .03, "third": 0}[json["query"]])
@@ -59,14 +65,17 @@ def test_online_search_is_concurrent_but_keeps_query_order(monkeypatch, tmp_path
     monkeypatch.setattr("app.sources.httpx.Client", FakeClient)
     evidence = online_search(current_question(), tmp_path, ["first", "second", "third", "ignored"])
 
-    assert [str(item.source_url) for item in evidence] == [
+    urls = [str(item.source_url) for item in evidence]
+    assert set(urls) == {
         "https://example.org/first", "https://example.org/shared",
         "https://example.org/second", "https://example.org/third",
-    ]
+    }
     assert [item.id for item in evidence] == ["E001", "E002", "E003", "E004"]
-    assert evidence[1].title == "Shared first"
-    snapshot = json.loads((tmp_path / evidence[1].snapshot_path).read_text())
-    assert snapshot["query"] == "first"
+    shared = next(item for item in evidence if str(item.source_url).endswith("/shared"))
+    assert shared.title == "Shared first"
+    assert set(shared.query_ids) == {"R001", "R002"}
+    snapshot = json.loads((tmp_path / shared.snapshot_path).read_text())
+    assert snapshot["metadata"]["query_ids"] == ["R001", "R002"]
 
 
 def test_online_search_uses_successful_queries_and_reports_total_failure(monkeypatch, tmp_path):
@@ -82,7 +91,7 @@ def test_online_search_uses_successful_queries_and_reports_total_failure(monkeyp
         def __exit__(self, *_):
             pass
 
-        def post(self, url, json):
+        def stream(self, method, url, json):
             if fail_all or json["query"] == "fail":
                 raise httpx.ConnectError("offline")
             return FakeResponse([{"url": "https://example.org/working", "content": "working text"}])

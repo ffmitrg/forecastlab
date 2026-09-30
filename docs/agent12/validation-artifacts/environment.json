@@ -1,0 +1,22 @@
+{
+  "verified_at": "2026-09-30T10:22:42.461065+00:00",
+  "base": "bb4d339a9fe94c016e751998943fc0f366b6ea0a",
+  "code_parent_before_delivery_commit": "d13c7148357e311d156f40b564a8b7ffb43a6ed5",
+  "python": "Python 3.12.13",
+  "node": "v22.23.1",
+  "npm": "10.9.8",
+  "backend_tests": 105,
+  "browser_tests": 11,
+  "browser_modes": {
+    "intercepted_api": 10,
+    "actual_local_backend_with_fixed_fixtures": 1
+  },
+  "warnings": 2,
+  "live_provider_validation": "not_run",
+  "manual_semantic_review": "not_performed",
+  "independent_code_review": "not_performed",
+  "lock_hashes": {
+    "uv.lock": "6e799672a3b2f5fb9c84e4e0388745cf7887dbf2c1dc06380f72a5500a44d282",
+    "frontend/package-lock.json": "821b952af973a6e7dde7d8c8965d21f4bb2027da5dcb759a838c54d770bca31a"
+  }
+}

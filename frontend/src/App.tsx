@@ -1,7 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { EvidenceFindingsPanel, SourceLimitations, sliceCodepoints } from './components/EvidenceFindingsPanel'
+import type { FindingCitation, PassageResponse, QuestionDraft } from './types'
+import { api } from './api'
+import { QuestionConfirmationPanel } from './components/QuestionConfirmationPanel'
+import { fieldsFromSpec, useQuestionFraming } from './components/useQuestionFraming'
+import type { QuestionFields } from './components/useQuestionFraming'
 import type { Action, Claim, Evidence, Health, Question, Run, SettlementSummary } from './types'
 
 type View = 'create' | 'evidence' | 'simulation' | 'result'
+type Agent12Demo = { case_id: string; question: QuestionDraft; allowed_answers: string[] }
 type Preset = { category: string; question: string; resolve_by: string; resolution_rule: string; resolution_source: string }
 const views: { id: View; number: string; label: string; sub: string }[] = [
   { id: 'create', number: '01', label: '创建预测', sub: '问题与边界' },
@@ -18,15 +25,6 @@ const dtLocal = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 6000
 const now = new Date()
 const later = new Date(now.getTime() + 30 * 86400_000)
 
-async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`/api${path}`, { ...init, headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) } })
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({}))
-    const detail = body.detail
-    throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail || `HTTP ${response.status}`))
-  }
-  return response.json()
-}
 
 function Badge({ children, tone = 'soft' }: { children: React.ReactNode; tone?: string }) { return <span className={`badge badge-${tone}`}>{children}</span> }
 function Empty({ title, text }: { title: string; text: string }) { return <div className="empty"><span className="empty-mark">◌</span><h3>{title}</h3><p>{text}</p></div> }
@@ -82,12 +80,24 @@ export default function App() {
   const [view, setView] = useState<View>('create')
   const [health, setHealth] = useState<Health | null>(null)
   const [presets, setPresets] = useState<Preset[]>([])
+  const [agent12Demo, setAgent12Demo] = useState<Agent12Demo | null>(null)
   const [history, setHistory] = useState<Run[]>([])
   const [settlementSummary, setSettlementSummary] = useState<SettlementSummary | null>(null)
   const [run, setRun] = useState<Run | null>(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [ref, setRef] = useState<string | null>(null)
+  const [citation, setCitation] = useState<FindingCitation | null>(null)
+  const [passageData, setPassageData] = useState<PassageResponse | null>(null)
+  const [passageError, setPassageError] = useState('')
+  const drawerElement = useRef<HTMLElement>(null)
+  const triggerElement = useRef<HTMLElement | null>(null)
+  function openRef(id: string, exactCitation: FindingCitation | null = null) {
+    triggerElement.current = document.activeElement as HTMLElement
+    setCitation(exactCitation); setPassageData(null); setPassageError(''); setRef(id)
+  }
+  function closeRef() { setRef(null); setCitation(null) }
+
   const [round, setRound] = useState(1)
   const [question, setQuestion] = useState('')
   const [asOf, setAsOf] = useState(dtLocal(now))
@@ -95,13 +105,19 @@ export default function App() {
   const [resolutionRule, setResolutionRule] = useState('')
   const [resolutionSource, setResolutionSource] = useState('')
   const [mode, setMode] = useState<'binary' | 'scenario'>('binary')
-  const [evidenceMode, setEvidenceMode] = useState<'import' | 'online' | 'reuse'>('import')
+  const [evidenceMode, setEvidenceMode] = useState<'import' | 'online' | 'reuse' | 'demo'>('import')
   const [evidence, setEvidence] = useState<Evidence[]>([])
   const [assumptions, setAssumptions] = useState('')
   const [parentRunId, setParentRunId] = useState<string | null>(null)
+  function applyQuestionFields(next: QuestionFields) {
+    setQuestion(next.question); setAsOf(next.asOf); setResolveBy(next.resolveBy); setResolutionRule(next.resolutionRule)
+    setResolutionSource(next.resolutionSource); setMode(next.mode); setAssumptions(next.assumptions)
+  }
+  const framing = useQuestionFraming({ question, asOf, resolveBy, resolutionRule, resolutionSource, mode, assumptions }, applyQuestionFields, setError)
+
 
   useEffect(() => {
-    Promise.all([api<Health>('/health'), api<Run[]>('/runs'), api<{ presets: Preset[] }>('/examples'), api<SettlementSummary>('/settlements/summary')]).then(([h, items, examples, summary]) => { setHealth(h); setHistory(items); setPresets(examples.presets); setSettlementSummary(summary); if (items.length) setRun(items[0]) }).catch(e => setError(e.message))
+    Promise.all([api<Health>('/health'), api<Run[]>('/runs'), api<{ presets: Preset[]; agent12_demo?: Agent12Demo }>('/examples'), api<SettlementSummary>('/settlements/summary')]).then(([h, items, examples, summary]) => { setHealth(h); setHistory(items); setPresets(examples.presets); setAgent12Demo(examples.agent12_demo || null); setSettlementSummary(summary); if (items.length) setRun(items[0]) }).catch(e => setError(e.message))
   }, [])
   useEffect(() => {
     if (!run || !['queued', 'running'].includes(run.status)) return
@@ -129,6 +145,39 @@ export default function App() {
     return null
   }, [ref, run])
 
+  useEffect(() => {
+    if (!ref || !run) return
+    let active = true
+    const evidence = run.evidence.find(e => e.id === ref)
+    if (evidence?.snapshot_hash) {
+      api<PassageResponse>(`/runs/${run.run_id}/evidence/${encodeURIComponent(ref)}/passages`).then(data => {
+        if (!active) return
+        if (citation && (data.snapshot_hash !== citation.snapshot_hash || sliceCodepoints(data.text, citation.start, citation.end) !== citation.quote)) {
+          setPassageError('引文版本或位置与原文快照不匹配，未显示高亮。'); return
+        }
+        setPassageData(data)
+      }).catch(error => { if (active) setPassageError((error as Error).message) })
+    }
+    return () => { active = false }
+  }, [ref, run?.run_id, citation])
+
+  useEffect(() => {
+    if (!ref) return
+    const drawer = drawerElement.current
+    const first = drawer?.querySelector<HTMLElement>('button, a[href], select, textarea, [tabindex="0"]')
+    first?.focus()
+    const handle = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); closeRef() }
+      if (event.key === 'Tab' && drawer) {
+        const items = Array.from(drawer.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], select, textarea, [tabindex="0"]'))
+        if (items.length && event.shiftKey && document.activeElement === items[0]) { event.preventDefault(); items[items.length - 1].focus() }
+        else if (items.length && !event.shiftKey && document.activeElement === items[items.length - 1]) { event.preventDefault(); items[0].focus() }
+      }
+    }
+    document.addEventListener('keydown', handle)
+    return () => { document.removeEventListener('keydown', handle); triggerElement.current?.focus() }
+  }, [ref])
+
   function chooseRun(item: Run) { setRun(item); setView('result'); setRef(null); setRound(1) }
   function onSettlementSaved(updated: Run) {
     setRun(updated)
@@ -139,7 +188,26 @@ export default function App() {
     setView('simulation')
     window.requestAnimationFrame(() => document.getElementById('review-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
+  function loadAgent12Demo() {
+    if (!agent12Demo) return
+    framing.newDraft(); applyQuestionFields(fieldsFromSpec(agent12Demo.question)); framing.setDemoCaseId(agent12Demo.case_id)
+    setEvidenceMode('demo'); setEvidence([]); setParentRunId(null); setView('create'); setError('')
+    // Loading fills a form below the fold: make the next action visible and focused.
+    window.requestAnimationFrame(() => {
+      const nextAction = document.getElementById('analyze-question')
+      nextAction?.focus({ preventScroll: true })
+      nextAction?.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+        block: 'center',
+      })
+    })
+  }
+  function chooseEvidenceMode(next: 'import' | 'online' | 'reuse') {
+    if (framing.demoCaseId) framing.newDraft()
+    setEvidenceMode(next)
+  }
   function applyPreset(item: Preset) {
+    framing.newDraft()
     setQuestion(item.question); setResolveBy(dtLocal(new Date(item.resolve_by)))
     setResolutionRule(item.resolution_rule); setResolutionSource(item.resolution_source)
     setMode('binary'); setParentRunId(null); setEvidence([])
@@ -147,12 +215,16 @@ export default function App() {
   }
   function useRunForRevision() {
     if (!run) return
+    framing.newDraft()
     const q = run.question
     setQuestion(q.question); setAsOf(dtLocal(new Date(q.as_of)))
     setResolveBy(q.resolve_by ? dtLocal(new Date(q.resolve_by)) : dtLocal(later))
     setResolutionRule(q.resolution_rule); setResolutionSource(q.resolution_source || '')
     setMode(q.mode); setEvidenceMode('reuse'); setEvidence([])
     setAssumptions(q.user_assumptions.join('\n')); setParentRunId(run.run_id)
+    if (run.demo && run.question_framing) {
+      framing.install(run.question_framing); framing.editDecisions(); setEvidenceMode('demo')
+    }
     setView('create'); setError('')
   }
   async function startDemo() {
@@ -166,14 +238,9 @@ export default function App() {
   async function startRun() {
     setError(''); setBusy(true)
     try {
-      const parsed = await api<{ spec: Question | null; clarification_fields: string[] }>('/questions/parse', { method: 'POST', body: JSON.stringify({
-        question: question.trim(), as_of: new Date(asOf).toISOString(), resolve_by: mode === 'binary' ? new Date(resolveBy).toISOString() : null,
-        resolution_rule: resolutionRule, resolution_source: resolutionSource || null, mode,
-        user_assumptions: assumptions.split('\n').map(x => x.trim()).filter(Boolean),
-      }) })
-      if (!parsed.spec) throw new Error(`请补充：${parsed.clarification_fields.join('、')}`)
+      if (!framing.confirmationId) throw new Error('请先分析问题并确认当前版本。')
       if (evidenceMode === 'import' && evidence.length === 0) throw new Error('请先导入证据包；也可以选择在线检索或教学演示。')
-      const created = await api<{ run_id: string }>('/runs', { method: 'POST', body: JSON.stringify({ question: parsed.spec, evidence_mode: evidenceMode, evidence, parent_run_id: parentRunId }) })
+      const created = await api<{ run_id: string }>('/runs', { method: 'POST', body: JSON.stringify({ confirmation_id: framing.confirmationId, evidence_mode: evidenceMode, evidence, parent_run_id: parentRunId }) })
       setRun(await api<Run>(`/runs/${created.run_id}`)); setView('simulation'); setParentRunId(null)
     } catch (e) { setError((e as Error).message) } finally { setBusy(false) }
   }
@@ -194,7 +261,7 @@ export default function App() {
       setEvidence(items); setError('')
     } catch (e) { setError(`证据包无效：${(e as Error).message}`) }
   }
-  function refs(ids: string[]) { return ids.map(id => <button className="ref" key={id} onClick={() => setRef(id)}>{id}</button>) }
+  function refs(ids: string[]) { return ids.map(id => <button className="ref" key={id} onClick={() => openRef(id)}>{id}</button>) }
   function claimList(claims: Claim[], empty: string) { return claims.length ? claims.map((c, i) => <div className="claim" key={i}><div className="claim-dot"/><div><p>{c.text}</p><div className="ref-row">{refs([...c.evidence_ids, ...c.assumption_ids, ...c.simulation_ids])}</div></div></div>) : <p className="muted">{empty}</p> }
   const activeStep = run?.simulation.find(s => s.round === round)
   const activeActions: Action[] = run?.actions.filter(a => a.round === round) || []
@@ -223,17 +290,19 @@ export default function App() {
     <main className="main">
       <header className="topbar"><div className="breadcrumb">FORECASTLAB <span>/</span> {views.find(v => v.id === view)?.label}</div><div className="top-actions"><Badge tone={run?.demo ? 'amber' : 'soft'}>{run?.demo ? '教学虚构情境' : '课程项目'}</Badge><span className="top-time">{new Date().toLocaleDateString('zh-CN')}</span></div></header>
       <div className="content">
-        {error && <div className="alert"><strong>需要处理</strong><span>{error}</span><button aria-label="关闭提示" onClick={() => setError('')}>×</button></div>}
+        {error && <div className="alert" role="alert"><strong>需要处理</strong><span>{error}</span><button aria-label="关闭提示" onClick={() => setError('')}>×</button></div>}
         {view === 'create' && <>
-          <div className="hero"><div className="hero-copy"><div className="eyebrow light">QUESTION → EVIDENCE → SIMULATION → FORECAST</div><h1>让判断有依据，<br/><em>让推演可追溯。</em></h1><p>从一个可结算的问题开始。区分外部证据、建模假设与模拟行动，再形成带引用的主观预测。</p><div className="hero-actions"><button className="button button-light" onClick={startDemo} disabled={busy}>运行教学演示 <span>↗</span></button><span>无需 API Key · 虚构材料 · 完整流程</span></div></div><div className="hero-graphic" aria-hidden="true"><div className="orbit orbit-1"/><div className="orbit orbit-2"/><div className="orb orb-a">E</div><div className="orb orb-b">A</div><div className="orb orb-c">O</div><div className="graphic-center">S <span>→</span> A <span>→</span> O</div><div className="graphic-label">STATE · ACTION · OUTCOME</div></div></div>
+          <div className="hero"><div className="hero-copy"><div className="eyebrow light">QUESTION → EVIDENCE → SIMULATION → FORECAST</div><h1>让判断有依据，<br/><em>让推演可追溯。</em></h1><p>从一个可结算的问题开始。区分外部证据、建模假设与模拟行动，再形成带引用的主观预测。</p><div className="hero-actions"><button className="button button-light" onClick={startDemo} disabled={busy}>运行教学演示 <span>↗</span></button>{agent12Demo && <button className="button button-light" onClick={loadAgent12Demo} disabled={busy || framing.busy}>体验问题与证据新流程</button>}<span>无需 API Key · 虚构材料 · 完整流程</span></div></div><div className="hero-graphic" aria-hidden="true"><div className="orbit orbit-1"/><div className="orbit orbit-2"/><div className="orb orb-a">E</div><div className="orb orb-b">A</div><div className="orb orb-c">O</div><div className="graphic-center">S <span>→</span> A <span>→</span> O</div><div className="graphic-label">STATE · ACTION · OUTCOME</div></div></div>
           <div className="metrics"><div><strong>03</strong><span>默认模拟主体</span></div><div><strong>02</strong><span>行动与状态轮次</span></div><div><strong>01</strong><span>统一证据链</span></div><div><strong>∞</strong><span>可回放的版本记录</span></div></div>
           <div className="preset-strip"><span>跨品类示例 / QUICK START</span>{presets.map(item => <button key={item.category} onClick={() => applyPreset(item)}><strong>{item.category}</strong><small>{item.question}</small><b>↗</b></button>)}</div>
           <SectionHeading eyebrow="01 / DEFINE THE QUESTION" title="创建一次预测" description="先定义目标和结算方式。开放问题可切换为情景分析。" right={<Badge>新运行</Badge>}/>
-          <div className="form-grid"><section className="panel form-panel"><label className="field"><span>预测问题 <b>*</b></span><textarea value={question} onChange={e => setQuestion(e.target.value)} placeholder="例如：某产品能否在 12 月 20 日前发布正式版？" rows={3}/><small>用可以被真实结果核对的句子提问。</small></label><div className="field-row"><label className="field"><span>信息截至时间</span><input type="datetime-local" value={asOf} onChange={e => setAsOf(e.target.value)}/></label><label className="field"><span>结算时间</span><input type="datetime-local" value={resolveBy} onChange={e => setResolveBy(e.target.value)} disabled={mode === 'scenario'}/></label></div><label className="field"><span>结算规则 <b>{mode === 'binary' ? '*' : ''}</b></span><input value={resolutionRule} onChange={e => setResolutionRule(e.target.value)} placeholder="什么情况算“是”？由哪个记录核对？"/></label><label className="field"><span>结算来源</span><input value={resolutionSource} onChange={e => setResolutionSource(e.target.value)} placeholder="官方网站、公告或赛事记录"/></label><label className="field"><span>用户假设（每行一条）</span><textarea value={assumptions} onChange={e => setAssumptions(e.target.value)} placeholder="可选：用于修改条件并重跑" rows={2}/></label></section>
-          <section className="panel options-panel"><div className="panel-head"><span className="panel-index">A</span><div><h3>分析模式</h3><p>根据问题形态选择输出。</p></div></div><div className="option-stack"><button className={mode === 'binary' ? 'option selected' : 'option'} onClick={() => setMode('binary')}><span className="radio"/><div><strong>二元事件预测</strong><small>输出“是 / 否”主观概率，需要截止时间与结算规则。</small></div></button><button className={mode === 'scenario' ? 'option selected' : 'option'} onClick={() => setMode('scenario')}><span className="radio"/><div><strong>开放情景分析</strong><small>描述可能路径，不强行给出可评分概率。</small></div></button></div><div className="divider"/><div className="panel-head"><span className="panel-index">B</span><div><h3>证据入口</h3><p>资料由后端记录，模型只能引用编号。</p></div></div><div className="segmented"><button className={evidenceMode === 'import' ? 'on' : ''} onClick={() => setEvidenceMode('import')}>导入证据包</button><button className={evidenceMode === 'online' ? 'on' : ''} onClick={() => setEvidenceMode('online')}>在线检索</button>{parentRunId && <button className={evidenceMode === 'reuse' ? 'on' : ''} onClick={() => setEvidenceMode('reuse')}>沿用证据</button>}</div>{evidenceMode === 'import' ? <label className="upload"><span>↑</span><strong>选择 JSON 证据包</strong><small>{evidence.length ? `已载入 ${evidence.length} 条证据` : '使用 Evidence[] 或 { evidence: [...] } 格式'}</small><input type="file" accept=".json,application/json" onChange={e => uploadEvidence(e.target.files?.[0])}/></label> : evidenceMode === 'reuse' ? <p className="hint">沿用父运行保存的证据快照，方便只修改假设或结算条件后比较结果。</p> : <p className="hint">在线模式使用 Tavily API。若未配置检索密钥，先选择导入证据包。</p>}{/(指数|股价|股票|股指|A股|科创50)/.test(question) && <p className="hint">市场方向预测可补充截至日已发布的同期限历史涨跌、波动与回撤、估值等资料；仅有一两个价格点很难说明一个月的基准概率。</p>}<button className="button button-primary full" onClick={startRun} disabled={busy}>{busy ? '正在提交…' : parentRunId ? '创建新版本并运行 →' : '开始预测 →'}</button><p className="form-note">真实运行需要模型 API Key。模型输出与来源将在完成后单独展示。</p></section></div>
+          <div className="form-grid"><section className="panel form-panel"><label className="field"><span>预测问题 <b>*</b></span><textarea value={question} onChange={e => setQuestion(e.target.value)} placeholder="例如：某产品能否在 12 月 20 日前发布正式版？" rows={3}/><small>用可以被真实结果核对的句子提问。</small></label><div className="field-row"><label className="field"><span>信息截至时间</span><input type="datetime-local" value={asOf} onChange={e => setAsOf(e.target.value)}/></label><label className="field"><span>结算时间</span><input type="datetime-local" value={resolveBy} onChange={e => setResolveBy(e.target.value)} disabled={mode === 'scenario'}/></label></div><label className="field"><span>结算规则 <b>{mode === 'binary' ? '*' : ''}</b></span><input value={resolutionRule} onChange={e => setResolutionRule(e.target.value)} placeholder="什么情况算“是”？由哪个记录核对？"/></label><label className="field"><span>结算来源</span><input value={resolutionSource} onChange={e => setResolutionSource(e.target.value)} placeholder="官方网站、公告或赛事记录"/></label><label className="field"><span>用户指定的情景条件（每行一条，不代表事实）</span><textarea value={assumptions} onChange={e => setAssumptions(e.target.value)} placeholder="可选：用于修改条件并重跑" rows={2}/></label></section>
+          <section className="panel options-panel"><div className="panel-head"><span className="panel-index">A</span><div><h3>分析模式</h3><p>根据问题形态选择输出。</p></div></div><div className="option-stack"><button className={mode === 'binary' ? 'option selected' : 'option'} onClick={() => setMode('binary')}><span className="radio"/><div><strong>二元事件预测</strong><small>输出“是 / 否”主观概率，需要截止时间与结算规则。</small></div></button><button className={mode === 'scenario' ? 'option selected' : 'option'} onClick={() => setMode('scenario')}><span className="radio"/><div><strong>开放情景分析</strong><small>描述可能路径，不强行给出可评分概率。</small></div></button></div><div className="divider"/><div className="panel-head"><span className="panel-index">B</span><div><h3>证据入口</h3><p>资料由后端记录，模型只能引用编号。</p></div></div><div className="segmented"><button className={evidenceMode === 'import' ? 'on' : ''} onClick={() => chooseEvidenceMode('import')}>导入证据包</button><button className={evidenceMode === 'online' ? 'on' : ''} onClick={() => chooseEvidenceMode('online')}>在线检索</button>{parentRunId && <button className={evidenceMode === 'reuse' ? 'on' : ''} onClick={() => chooseEvidenceMode('reuse')}>沿用证据</button>}</div>{evidenceMode === 'demo' ? <p className="framing-warning">固定教学证据 · 不联网，不产生付费调用。仅接受样例问题；澄清回答请填写“可下载的正式版”。切换证据入口会退出教学模式。</p> : evidenceMode === 'import' ? <label className="upload"><span>↑</span><strong>选择 JSON 证据包</strong><small>{evidence.length ? `已载入 ${evidence.length} 条证据` : '使用 Evidence[] 或 { evidence: [...] } 格式'}</small><input type="file" accept=".json,application/json" onChange={e => uploadEvidence(e.target.files?.[0])}/></label> : evidenceMode === 'reuse' ? <p className="hint">沿用父运行保存的证据快照，方便只修改假设或结算条件后比较结果。</p> : <p className="hint">在线模式使用 Tavily API。若未配置检索密钥，先选择导入证据包。</p>}{/(指数|股价|股票|股指|A股|科创50)/.test(question) && <p className="hint">市场方向预测可补充截至日已发布的同期限历史涨跌、波动与回撤、估值等资料；仅有一两个价格点很难说明一个月的基准概率。</p>}<button className="button button-primary full" onClick={startRun} disabled={busy || framing.busy || !framing.confirmationId}>{busy ? '正在提交…' : parentRunId ? '创建新版本并运行 →' : '开始预测 →'}</button><p className="form-note">真实运行需要模型 API Key。模型输出与来源将在完成后单独展示。</p></section></div>
+          <QuestionConfirmationPanel demoQuestion={framing.demoCaseId ? question : undefined} framing={framing.framing} confirmationId={framing.confirmationId} busy={busy || framing.busy} dirty={framing.dirty}
+            onAnalyze={() => framing.analyze()} onAnswer={framing.analyze} onConfirm={framing.confirm} onEdit={framing.editDecisions} onReload={framing.reload}/>
         </>}
 
-        {view === 'evidence' && <><SectionHeading eyebrow="02 / SOURCE & MODEL" title="证据与世界状态" description="每项事实、假设和模拟都保留不同身份；点击编号查看原文。" right={run && <Badge tone={run.demo ? 'amber' : 'soft'}>{run.demo ? '虚构样例' : `${run.evidence.length} 条证据`}</Badge>}/>{!run ? <Empty title="还没有运行记录" text="从创建预测开始，或运行教学演示查看完整结构。"/> : <div className="columns"><div className="wide-stack"><section className="panel"><div className="panel-title"><h3>外部证据 <span>E / {run.evidence.length}</span></h3><small>来源、原文与时间</small></div>{run.evidence.length ? run.evidence.map(e => <button className="evidence-row" key={e.id} onClick={() => setRef(e.id)}><span className="id-chip">{e.id}</span><div><strong>{e.title}</strong><p>{e.excerpt}</p><small>{e.publisher || '未知发布方'} · {e.source_type === 'exercise' ? '教学虚构' : e.source_type} · {new Date(e.retrieved_at).toLocaleDateString('zh-CN')}</small></div><span className="arrow">↗</span></button>) : <Empty title="暂无证据" text="证据阶段完成后会显示来源；无有效证据不会输出概率。"/>}</section><section className="panel"><div className="panel-title"><h3>世界状态 <span>S₀</span></h3><small>{run.world?.summary || '等待构建'}</small></div>{run.world && <div className="variable-grid">{Object.entries(run.world.variables).map(([k, v]) => <div className="variable" key={k}><small>{k.replaceAll('_', ' ')}</small><strong>{v}</strong></div>)}</div>}</section></div><div className="narrow-stack"><section className="panel"><div className="panel-title"><h3>建模假设 <span>H</span></h3><small>可修订条件</small></div>{run.world?.assumptions.length ? run.world.assumptions.map(a => <button className="assumption" key={a.id} onClick={() => setRef(a.id)}><span className="id-chip amber">{a.id}</span><div><strong>{a.content}</strong><small>{a.created_by === 'model' ? '模型提出' : '用户提出'} · 依据 {a.parent_ids.join('、') || '未记录'}</small></div></button>) : <p className="muted padded">尚无假设记录。</p>}<button className="text-button" onClick={useRunForRevision}>修改条件并创建新运行 ↗</button></section><section className="panel"><div className="panel-title"><h3>相关主体 <span>A / {run.world?.actors.length || 0}</span></h3><small>目标、约束与可见证据</small></div>{run.world?.actors.map(a => <div className="actor-mini" key={a.id}><span className="actor-avatar">{a.name.slice(0, 1)}</span><div><strong>{a.name}</strong><small>目标：{a.goal}</small><div className="ref-row">{refs(a.visible_evidence_ids)}</div></div></div>)}{run.world && !run.world.actors.length && <p className="muted padded">{run.world.simulation_branch_reason || '该问题未识别出适合行动推演的主体。'}</p>}</section>{run.evidence_assessment && <section className="panel"><div className="panel-title"><h3>证据评估</h3><small>冲突与缺口</small></div><div className="assessment"><p>{run.evidence_assessment.summary}</p><strong>冲突</strong><ul>{run.evidence_assessment.conflicts.map((x,i) => <li key={i}>{x}</li>)}</ul><strong>缺口</strong><ul>{run.evidence_assessment.gaps.map((x,i) => <li key={i}>{x}</li>)}</ul></div></section>}</div></div>}</>}
+        {view === 'evidence' && <><SectionHeading eyebrow="02 / SOURCE & MODEL" title="证据与世界状态" description="每项事实、假设和模拟都保留不同身份；点击编号查看原文。" right={run && <Badge tone={run.demo ? 'amber' : 'soft'}>{run.demo ? '虚构样例' : `${run.evidence.length} 条证据`}</Badge>}/>{run && <EvidenceFindingsPanel key={run.run_id} framing={run.question_framing} assessment={run.evidence_assessment} evidence={run.evidence} onInspectCitation={c => openRef(c.evidence_id, c)}/>}{!run ? <Empty title="还没有运行记录" text="从创建预测开始，或运行教学演示查看完整结构。"/> : <div className="columns"><div className="wide-stack"><section className="panel"><div className="panel-title"><h3>外部证据 <span>E / {run.evidence.length}</span></h3><small>来源、原文与时间</small></div>{run.evidence.length ? run.evidence.map(e => <button className="evidence-row" key={e.id} onClick={() => openRef(e.id)}><span className="id-chip">{e.id}</span><div><strong>{e.title}</strong><p>{e.excerpt}</p><small>{e.publisher || '未知发布方'} · {run.demo ? '教学虚构' : e.source_type === 'exercise' ? '历史练习' : e.source_type} · {new Date(e.retrieved_at).toLocaleDateString('zh-CN')}</small></div><span className="arrow">↗</span></button>) : <Empty title="暂无证据" text="证据阶段完成后会显示来源；无有效证据不会输出概率。"/>}</section><section className="panel"><div className="panel-title"><h3>世界状态 <span>S₀</span></h3><small>{run.world?.summary || '等待构建'}</small></div>{run.world && <div className="variable-grid">{Object.entries(run.world.variables).map(([k, v]) => <div className="variable" key={k}><small>{k.replaceAll('_', ' ')}</small><strong>{v}</strong></div>)}</div>}</section></div><div className="narrow-stack"><section className="panel"><div className="panel-title"><h3>建模假设 <span>H</span></h3><small>可修订条件</small></div>{run.world?.assumptions.length ? run.world.assumptions.map(a => <button className="assumption" key={a.id} onClick={() => openRef(a.id)}><span className="id-chip amber">{a.id}</span><div><strong>{a.content}</strong><small>{a.created_by === 'model' ? '模型提出' : '用户提出'} · 依据 {a.parent_ids.join('、') || '未记录'}</small></div></button>) : <p className="muted padded">尚无假设记录。</p>}<button className="text-button" onClick={useRunForRevision}>修改条件并创建新运行 ↗</button></section><section className="panel"><div className="panel-title"><h3>相关主体 <span>A / {run.world?.actors.length || 0}</span></h3><small>目标、约束与可见证据</small></div>{run.world?.actors.map(a => <div className="actor-mini" key={a.id}><span className="actor-avatar">{a.name.slice(0, 1)}</span><div><strong>{a.name}</strong><small>目标：{a.goal}</small><div className="ref-row">{refs(a.visible_evidence_ids)}</div></div></div>)}{run.world && !run.world.actors.length && <p className="muted padded">{run.world.simulation_branch_reason || '该问题未识别出适合行动推演的主体。'}</p>}</section>{run.evidence_assessment && <section className="panel"><div className="panel-title"><h3>证据评估</h3><small>冲突与缺口</small></div><div className="assessment"><p>{run.evidence_assessment.summary}</p><strong>冲突</strong><ul>{run.evidence_assessment.conflicts.map((x,i) => <li key={i}>{x}</li>)}</ul><strong>缺口</strong><ul>{run.evidence_assessment.gaps.map((x,i) => <li key={i}>{x}</li>)}</ul></div></section>}</div></div>}</>}
 
         {view === 'simulation' && <><SectionHeading eyebrow="03 / SIMULATION TRACE" title="推演过程" description="同一轮主体读取相同状态，统一由环境推进器产生下一状态。" right={run && <Badge tone={run.status === 'running' ? 'green' : 'soft'}>{statusLabel(run)}</Badge>}/>{!run ? <Empty title="等待第一条轨迹" text="运行预测后，这里会展示真实阶段、主体行动与审查结果。"/> : <><div className="run-banner"><div><span className="live-dot"/><strong>{stageNames[run.stage] || run.stage}</strong><small>{run.demo ? '教学演示 · 虚构材料' : `${run.model} · ${run.usage.calls} 次模型调用`}</small></div><span>{run.run_id}</span></div><div className="timeline">{stages.map((s, i) => <div className={run.stage_outputs[s] ? 'timeline-step complete' : runStopped && failedStage === s ? 'timeline-step failed' : run.stage === s ? 'timeline-step current' : 'timeline-step'} key={s}><span>{String(i + 1).padStart(2, '0')}</span><strong>{stageNames[s]}</strong><small>{run.stage_outputs[s] ? '已保存' : runStopped && failedStage === s ? '已中断' : run.stage === s ? '进行中' : '等待'}</small></div>)}</div>{run.errors.length > 0 && <div className="alert"><strong>运行说明</strong><span>{run.errors.join('；')}</span></div>}<div className="two-col"><section className="panel"><div className="panel-title"><h3>主体行动</h3><div className="round-tabs"><button className={round === 1 ? 'on' : ''} onClick={() => setRound(1)}>第 1 轮</button><button className={round === 2 ? 'on' : ''} onClick={() => setRound(2)}>第 2 轮</button></div></div>{activeActions.length ? activeActions.map(a => <div className="action-card" key={a.id}><div className="action-head"><span className="actor-avatar">{run.world?.actors.find(x => x.id === a.actor_id)?.name.slice(0, 1) || 'A'}</span><div><strong>{run.world?.actors.find(x => x.id === a.actor_id)?.name || a.actor_id}</strong><small>读取状态 S{a.parent_state} · 模拟行动</small></div><span className="id-chip simulation">{a.id}</span></div><h4>{a.action}</h4><p>{a.rationale_summary}</p><small>预期影响：{a.expected_impact}</small><div className="ref-row">{refs([...a.evidence_ids, ...a.assumption_ids])}</div></div>) : <Empty title="行动尚未生成" text="完成世界建模后，主体行动会在这里逐轮出现。"/>}</section><section className="panel"><div className="panel-title"><h3>环境推进 <span>S{round - 1} → S{round}</span></h3><small>统一处理相互影响</small></div>{activeStep ? <div className="step-content"><div className="step-icon">S{round}</div><h4>{activeStep.summary}</h4><div className="step-block"><small>状态变化</small>{Object.entries(activeStep.state_changes).map(([k, v]) => <p key={k}>{k.replaceAll('_', ' ')} <span>→</span> {v}</p>)}</div><div className="step-block"><small>保留的冲突</small>{activeStep.conflicts.map((c, i) => <p key={i}>{c}</p>)}</div><div className="step-block"><small>未解决问题</small>{activeStep.unresolved.map((u, i) => <p key={i}>{u}</p>)}</div><div className="ref-row">{refs([...activeStep.evidence_ids, ...activeStep.assumption_ids])}</div></div> : <Empty title="等待环境推进" text="环境会在收齐本轮所有行动后更新模拟状态。"/>}</section></div><section id="review-panel" className="panel review-panel"><div className="panel-title"><h3>审查意见</h3><Badge tone={run.review?.status === 'blocked' || (runStopped && !run.review) ? 'red' : 'soft'}>{run.review?.status || (runStopped ? '未生成' : '等待审查')}</Badge></div>{run.review ? <div className="issues">{run.review.issues.length ? run.review.issues.map((issue, i) => <div className="issue" key={i}><Badge tone={issue.severity === 'high' ? 'red' : 'amber'}>{issue.severity}</Badge><div><strong>{issue.claim}</strong><p>{issue.explanation}</p><div className="ref-row">{refs(issue.affected_ids)}</div></div></div>) : <p className="muted">没有记录到审查问题。</p>}</div> : runStopped ? <div className="review-stopped"><div className="alert" role="alert"><strong>审查意见尚未生成（{statusLabel(run)}）</strong><span>{runError}</span></div><button className="text-button" disabled={busy} onClick={resumeRun}>从失败阶段继续 ↗</button></div> : <p className="muted">尚未进入审查阶段。</p>}</section></>}</>}
 
@@ -241,15 +310,29 @@ export default function App() {
       </div>
       <footer className="main-footer"><span>FORECASTLAB / EVIDENCE FIRST, SIMULATION SECOND.</span><span>课程实验工具 · 预测有不确定性</span></footer>
     </main>
-    {ref && <div className="drawer-backdrop" onClick={() => setRef(null)}>
-      <aside className="drawer" onClick={e => e.stopPropagation()}>
-        <div className="drawer-top"><span>REFERENCE / {ref}</span><button onClick={() => setRef(null)} aria-label="关闭详情">×</button></div>
+    {ref && <div className="drawer-backdrop" onClick={closeRef}>
+      <aside className="drawer" role="dialog" aria-modal="true" aria-label="来源与引用详情" ref={drawerElement} onClick={e => e.stopPropagation()}>
+        <div className="drawer-top"><span>REFERENCE / {ref}</span><button onClick={closeRef} aria-label="关闭详情">×</button></div>
         {selected ? <>
           <Badge tone={selected.kind === '建模假设' ? 'amber' : selected.kind === '模拟状态' || selected.kind === '模拟行动' ? 'green' : 'soft'}>{selected.kind}</Badge>
           <h2>{selected.kind === '外部证据' ? selected.item.title : selected.kind === '建模假设' ? selected.item.content : selected.kind === '相关主体' ? selected.item.name : selected.kind === '模拟行动' ? selected.item.action : selected.item.summary}</h2>
           {selected.kind === '外部证据' && <>
             <div className="drawer-meta"><div>发布方 <strong>{selected.item.publisher || '未知'}</strong></div><div>资料类型 <strong>{selected.item.source_type}</strong></div><div>抓取/导入时间 <strong>{new Date(selected.item.retrieved_at).toLocaleString('zh-CN')}</strong></div><div>内容哈希 <strong>{selected.item.content_hash.slice(0, 16)}…</strong></div></div>
-            <h3>保存的原文片段</h3><blockquote>{selected.item.excerpt}</blockquote>
+            <SourceLimitations evidence={selected.item}/>
+            {selected.item.source_group_basis && <><h3>来源分组依据（不等于独立性已验证）</h3><p>{selected.item.source_group_basis}</p></>}
+            {selected.item.source_kind_basis && <p>{selected.item.source_kind_basis}</p>}
+            <div className="drawer-meta"><div>来源发布日期<strong>{selected.item.published_at ? new Date(selected.item.published_at).toLocaleString('zh-CN') : '未知'}</strong></div><div>更新时间<strong>{selected.item.updated_at ? new Date(selected.item.updated_at).toLocaleString('zh-CN') : '未知'}</strong></div>
+              {Object.entries(selected.item.date_basis || {}).map(([key,value]) => <div key={key}>日期依据 · {key}<strong>{value}</strong></div>)}
+              {selected.item.snapshot_hash && <div>正文快照哈希<strong>{selected.item.snapshot_hash}</strong></div>}</div>
+            {passageError && <p role="alert" className="framing-warning">{passageError}</p>}
+            <h3>{citation ? '引用所在的原文上下文' : '保存的原文片段'}</h3>
+            {citation && passageData ? <blockquote className="source-exact-text">
+              {sliceCodepoints(passageData.text, Math.max(0, citation.start - 150), citation.start)}<mark>{sliceCodepoints(passageData.text, citation.start, citation.end)}</mark>{sliceCodepoints(passageData.text, citation.end, citation.end + 150)}
+            </blockquote> : <blockquote>{selected.item.excerpt}</blockquote>}
+            {citation && !passageData && !passageError && <p role="status">正在核对原文快照…</p>}
+            {passageData && <details><summary>展开本次保存的来源全文{passageData.content_truncated ? '（已截断）' : ''}</summary><pre className="source-full-text">{passageData.text}</pre></details>}
+            {!!selected.item.aliases?.length && <details><summary>重复网址与别名（{selected.item.aliases.length}）</summary>{selected.item.aliases.map((a,i) => <p key={i}>{a.source_url}<small> · {a.published_at || '发布日期未知'}</small></p>)}</details>}
+            {!!selected.item.possible_same_source?.length && <p className="framing-warning">疑似同源，尚未合并：{selected.item.possible_same_source.join('；')}</p>}
             {selected.item.source_url && <a href={selected.item.source_url} target="_blank" rel="noopener noreferrer" className="button button-primary">查看原始来源 ↗</a>}
           </>}
           {selected.kind === '建模假设' && <><p>{selected.item.rationale}</p><div className="drawer-meta"><div>提出者 <strong>{selected.item.created_by === 'user' ? '用户' : '模型'}</strong></div></div>{selected.item.parent_ids.length > 0 && <><h3>依赖</h3><div className="ref-row">{refs(selected.item.parent_ids)}</div></>}</>}

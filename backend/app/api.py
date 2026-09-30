@@ -11,8 +11,35 @@ from . import config
 from .demo import DEMO_QUESTION, demo_evidence
 from .graph import execute
 from .schemas import QuestionDraft, QuestionSpec, RunRecord, RunRequest, Settlement, SettlementRequest, utcnow
-from .sources import normalize_import
-from .storage import RunStore
+from .sources import normalize_import, import_evidence
+from .provenance import load_snapshot, split_passages
+from .storage import RunStore, VersionConflict
+from .question_service import QuestionService, ModelNotConfigured
+from .llm import BudgetExceeded
+from .schemas import AnalyzeQuestionRequest, ConfirmQuestionRequest
+
+
+def resolve_run_input(request: RunRequest, store: RunStore):
+    if request.confirmation_id:
+        confirmation = store.get_confirmation(request.confirmation_id)
+        if not confirmation:
+            raise KeyError("确认记录不存在")
+        if bool(confirmation.demo_case_id) != (request.evidence_mode == "demo"):
+            raise ValueError("真实确认不能使用教学证据，教学确认也不能使用真实取证模式")
+        return (confirmation.question.model_copy(deep=True), confirmation.framing.model_copy(deep=True),
+                [c.model_copy(deep=True) for c in store.list_calls(confirmation.draft_id) if c.phase == "preparation"])
+    return request.question.model_copy(deep=True), None, []
+
+
+def public_run_data(run: RunRecord):
+    """Exports are audit records, not capabilities to read server files."""
+    def clean(value):
+        if isinstance(value, dict):
+            return {k: clean(v) for k, v in value.items() if k not in {"snapshot_path", "declared_snapshot_path"}}
+        if isinstance(value, list):
+            return [clean(v) for v in value]
+        return value
+    return clean(run.model_dump(mode="json"))
 
 
 def report_html(run: RunRecord) -> str:
@@ -21,6 +48,17 @@ def report_html(run: RunRecord) -> str:
         f"<li>{esc(c.text)} <small>{esc(', '.join(c.evidence_ids + c.assumption_ids + c.simulation_ids))}</small></li>" for c in rows
     )
     forecast = run.forecast
+    origin = "已确认的问题" if run.question_origin == "confirmed" else "旧版直接输入（未经过新版确认）"
+    framing_html = f"<h2>问题来源</h2><p>{esc(origin)}</p>"
+    if run.question_framing:
+        framing_html += f"<p>用户原话：{esc(run.question_framing.raw_question)}</p>"
+        framing_html += "<ul>" + "".join(f"<li>{esc(p.id)} · {esc(p.content)} · {esc(p.user_review)} / {esc(p.treatment)}</li>" for p in run.question_framing.premises) + "</ul>"
+    if run.evidence_assessment:
+        framing_html += "<h2>逐项证据发现</h2>" + "".join(
+            f"<article><h3>{esc(f.id)} · {esc(f.claim)}</h3><p>{esc(f.relation)} · 前提 {esc(', '.join(f.target_premise_ids))}</p>"
+            + "".join(f"<blockquote>{esc(c.quote)}</blockquote><small>{esc(c.evidence_id)} / {esc(c.paragraph_id)} / {c.start}–{c.end}</small>" for c in f.citations)
+            + f"<p>{esc(f.limitation)}</p></article>" for f in run.evidence_assessment.findings)
+        framing_html += "<h3>冲突和缺口</h3><ul>" + "".join(f"<li>{esc(x)}</li>" for x in run.evidence_assessment.conflicts + run.evidence_assessment.gaps) + "</ul>"
     probability = "无有效概率" if not forecast or forecast.probabilities is None else " · ".join(f"{esc(k)} {v:.0%}" for k, v in forecast.probabilities.items())
     lookback_label = (" · 历史回看·非盲测" if any(
         e.source_type == "exercise" and e.retrieved_at > run.question.as_of for e in run.evidence
@@ -46,7 +84,7 @@ def report_html(run: RunRecord) -> str:
 <style>body{{font:16px/1.7 system-ui,sans-serif;max-width:850px;margin:48px auto;padding:0 24px;color:#183438}}h1,h2{{line-height:1.3}}small{{color:#607578}}article{{border-top:1px solid #d9e5e1;padding:14px 0}}blockquote{{background:#f1f6f4;padding:18px;margin:12px 0}}.tag{{color:#0b776a}}@media print{{a{{color:inherit}}}}</style>
 <p class='tag'>FORECASTLAB · {esc('教学演示 / 虚构材料' if run.demo else '运行报告')}{lookback_label}</p><h1>{esc(run.question.question)}</h1>
 <p>运行 ID：{esc(run.run_id)} · 状态：{esc(run.status)} · 信息截至：{esc(run.question.as_of.isoformat())} · 结算规则：{esc(run.question.resolution_rule)}</p>
-<h2>结论</h2><p>{esc(forecast.conclusion if forecast else '运行未完成')}</p><p><strong>{probability}</strong> · 主观概率，未经校准</p>
+{framing_html}<h2>结论</h2><p>{esc(forecast.conclusion if forecast else '运行未完成')}</p><p><strong>{probability}</strong> · 主观概率，未经校准</p>
 <h2>实际结果与评分</h2>{settlement_html}
 <h2>支持依据</h2><ul>{claims(forecast.supporting) if forecast else ''}</ul><h2>反对依据</h2><ul>{claims(forecast.opposing) if forecast else ''}</ul>
 <h2>模拟与审查</h2><ol>{''.join('<li>'+esc(s.summary)+'</li>' for s in run.simulation)}</ol><p>{esc(', '.join(i.explanation for i in run.review.issues) if run.review else '无审查结果')}</p>
@@ -54,7 +92,7 @@ def report_html(run: RunRecord) -> str:
 <footer><small>生成于 {esc(utcnow().isoformat())}；证据来源、假设和模拟记录分开保存。此报告不保证预测正确。</small></footer></html>"""
 
 
-def create_app(data_dir: Path | None = None) -> FastAPI:
+def create_app(data_dir: Path | None = None, *, question_model_factory=None) -> FastAPI:
     store = RunStore(data_dir or config.DATA_DIR)
     run_lock = Lock()
     settlement_lock = Lock()
@@ -66,6 +104,37 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
 
     app = FastAPI(title="ForecastLab API", version="0.1.0", lifespan=lifespan)
     app.state.store = store
+    question_service = QuestionService(store, model_factory=question_model_factory)
+    app.state.question_service = question_service
+
+    def question_call(method, *args):
+        try:
+            return method(*args)
+        except ModelNotConfigured as exc:
+            raise HTTPException(503, str(exc)) from exc
+        except VersionConflict as exc:
+            raise HTTPException(409, str(exc)) from exc
+        except KeyError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except BudgetExceeded as exc:
+            raise HTTPException(429, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(502, str(exc)) from exc
+
+    @app.post("/api/questions/analyze")
+    def analyze_question_endpoint(request: AnalyzeQuestionRequest):
+        return question_call(question_service.analyze, request)
+
+    @app.get("/api/questions/{draft_id}")
+    def get_question_draft(draft_id: str):
+        return question_call(question_service.get, draft_id)
+
+    @app.post("/api/questions/{draft_id}/confirm")
+    def confirm_question_endpoint(draft_id: str, request: ConfirmQuestionRequest):
+        return question_call(question_service.confirm, draft_id, request)
+
 
     @app.get("/api/health")
     def health():
@@ -73,7 +142,8 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
 
     @app.get("/api/examples")
     def examples():
-        return {"demo": {"question": DEMO_QUESTION.model_dump(mode="json"), "evidence": [e.model_dump(mode="json") for e in demo_evidence()]},
+        from .agent12_demo import classroom_case
+        return {"agent12_demo": classroom_case(), "demo": {"question": DEMO_QUESTION.model_dump(mode="json"), "evidence": [e.model_dump(mode="json") for e in demo_evidence()]},
                 "presets": [
                     {"category": "科技", "question": "Python 3.15 是否会在 2026 年 11 月 15 日前发布正式版？", "resolve_by": "2026-11-15T23:59:00Z", "resolution_rule": "以 python.org 正式下载页出现 Python 3.15 正式版本为是，否则为否。", "resolution_source": "https://www.python.org/downloads/"},
                     {"category": "体育", "question": "阿森纳是否会在 2026/27 赛季英超最终排名前四？", "resolve_by": "2027-06-30T23:59:00Z", "resolution_rule": "以英超官网发布的 2026/27 赛季最终积分榜名次 1–4 为是，否则为否。", "resolution_source": "https://www.premierleague.com/tables"},
@@ -103,20 +173,35 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
             parent = store.get(request.parent_run_id) if request.parent_run_id else None
             if request.parent_run_id and not parent:
                 raise HTTPException(404, "父运行不存在")
+            if request.evidence_mode == "reuse" and parent and parent.demo:
+                raise HTTPException(422, "教学虚构来源不能复用为真实运行的证据；请使用教学模式或真实证据包")
+            question, framing, preparation = resolve_run_input(request, store)
+            retrieval = None
             if request.evidence_mode == "demo":
-                question, evidence = DEMO_QUESTION, demo_evidence()
+                if framing:
+                    from .agent12_demo import demo_materials
+                    retrieval = demo_materials(question, framing, store.directory)
+                    evidence = retrieval.evidence
+                else:
+                    question, evidence = DEMO_QUESTION, demo_evidence()
             else:
                 if not config.MODEL_API_KEY:
                     raise HTTPException(503, "未配置 QWEN_API_KEY 或 DEEPSEEK_API_KEY；请先体验教学演示或配置后端密钥。")
-                question = request.question
                 if request.evidence_mode == "import":
-                    evidence = normalize_import(request.evidence, question)
+                    if framing:
+                        retrieval = import_evidence(request.evidence, question, store.directory)
+                        evidence = retrieval.evidence
+                    else:
+                        evidence = normalize_import(request.evidence, question)
                 elif request.evidence_mode == "reuse":
                     if not parent:
                         raise HTTPException(422, "沿用证据需要 parent_run_id")
                     if question.as_of < parent.question.as_of:
                         raise HTTPException(422, "沿用证据时，信息截至时间不能早于父运行")
-                    evidence = parent.evidence
+                    evidence = [e.model_copy(deep=True) for e in parent.evidence]
+                    if framing:
+                        from .schemas import RetrievalResult
+                        retrieval = RetrievalResult(evidence=evidence)
                 else:
                     if not config.TAVILY_API_KEY:
                         raise HTTPException(503, "未配置 TAVILY_API_KEY；请导入证据包。")
@@ -124,7 +209,11 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
             record = RunRecord(run_id=f"run_{uuid4().hex[:12]}", question=question,
                                parent_run_id=request.parent_run_id, question_version=2 if request.parent_run_id else 1,
                                evidence_mode=request.evidence_mode, demo=request.evidence_mode == "demo",
-                               model="fixture" if request.evidence_mode == "demo" else config.MODEL_NAME)
+                               model="fixture" if request.evidence_mode == "demo" else config.MODEL_NAME,
+                               confirmation_id=request.confirmation_id, question_framing=framing,
+                               question_origin="confirmed" if framing else "legacy_direct",
+                               preparation_records=preparation, retrieval_result=retrieval)
+            record.question_version = framing.revision if framing else (parent.question_version+1 if parent else 1)
             store.save(record)
             def work():
                 try:
@@ -133,6 +222,12 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
                     run_lock.release()
             background_tasks.add_task(work)
             return JSONResponse(status_code=202, content={"run_id": record.run_id, "status": "queued"})
+        except VersionConflict as exc:
+            run_lock.release()
+            raise HTTPException(409, str(exc)) from exc
+        except KeyError as exc:
+            run_lock.release()
+            raise HTTPException(404, str(exc)) from exc
         except ValueError as exc:
             run_lock.release()
             raise HTTPException(422, str(exc)) from exc
@@ -223,11 +318,28 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     def get_evidence(run_id: str):
         return required(run_id).evidence
 
+    @app.get("/api/runs/{run_id}/evidence-assessment")
+    def get_evidence_assessment(run_id: str):
+        return required(run_id).evidence_assessment
+
+    @app.get("/api/runs/{run_id}/evidence/{evidence_id}/passages")
+    def get_evidence_passages(run_id: str, evidence_id: str):
+        evidence = next((e for e in required(run_id).evidence if e.id == evidence_id), None)
+        if not evidence:
+            raise HTTPException(404, "证据编号不存在")
+        try:
+            snapshot = load_snapshot(evidence, store.directory)
+        except (ValueError, OSError) as exc:
+            raise HTTPException(422, "原文快照无法验证或为旧版记录；不能加载任意文件") from exc
+        return {"evidence_id": evidence.id, "text": snapshot.text, "snapshot_hash": snapshot.snapshot_hash,
+                "content_truncated": snapshot.content_truncated,
+                "passages": [p.model_dump() for p in split_passages(snapshot)]}
+
     @app.get("/api/runs/{run_id}/export")
     def export_run(run_id: str, format: str = Query("html", pattern="^(html|json)$")):
         run = required(run_id)
         if format == "json":
-            return JSONResponse(run.model_dump(mode="json"), headers={"Content-Disposition": f'attachment; filename="{run.run_id}.json"'})
+            return JSONResponse(public_run_data(run), headers={"Content-Disposition": f'attachment; filename="{run.run_id}.json"'})
         return HTMLResponse(report_html(run), headers={"Content-Disposition": f'attachment; filename="{run.run_id}.html"'})
 
     dist = config.ROOT / "frontend" / "dist"

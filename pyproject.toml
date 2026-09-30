@@ -15,6 +15,7 @@ dependencies = [
 
 [dependency-groups]
 dev = ["pytest==8.3.5"]
+browser = ["playwright==1.57.0"]
 
 [tool.pytest.ini_options]
 pythonpath = ["backend"]

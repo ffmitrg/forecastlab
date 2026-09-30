@@ -9,7 +9,10 @@ from langgraph.graph import StateGraph, START, END
 from .schemas import (QuestionSpec, QuestionAnalysis, Evidence, EvidenceAssessment, EvidenceOnlyAudit,
                       WorldState, ActorAction, SimulationStep, Review, ReviewIssue, Forecast,
                       EvidenceOnlyForecast, RunRecord, utcnow)
-from .sources import online_search
+from .sources import online_search, retrieve_evidence
+from .schemas import RetrievalResult, RetrievalLog, Assumption
+from .agents.evidence import (assess_evidence, active_framing, make_evidence_context, EvidenceStageError)
+from .llm import unique_request_count, request_active_seconds
 from .llm import BudgetExceeded, ModelClient
 from .demo import demo_output
 from . import config
@@ -18,6 +21,8 @@ from . import config
 class FlowState(TypedDict, total=False):
     question: dict
     question_analysis: dict
+    question_framing: dict
+    premise_assumption_map: dict
     evidence: list[dict]
     evidence_assessment: dict
     world: dict
@@ -191,14 +196,34 @@ STAGE_NODES = (
 )
 
 
-def build_graph(record: RunRecord, imported: list[Evidence], model: ModelClient | None, data_dir, *, start_at: str = "define_question"):
+def build_graph(record: RunRecord, imported: list[Evidence], model: ModelClient | None, data_dir, *, start_at: str = "define_question", store=None):
     def ask(role, payload, schema, instructions, *, actor_id=None, round_number=1):
         if record.demo:
             return schema.model_validate(demo_output(role, actor_id, round_number))
+        if record.question_framing:
+            payload = dict(payload)
+            is_evidence_only = role == "evidence_audit" or (role == "forecast" and payload.get("valid_assumption_ids") == [] and "world" not in payload)
+            if not is_evidence_only:
+                payload["question_framing"] = active_framing(record.question_framing)
+            key = "evidence" if "evidence" in payload else "visible_evidence" if "visible_evidence" in payload else None
+            if key and record.evidence_assessment:
+                ids = {e["id"] for e in payload[key]}
+                selected = [e for e in record.evidence if e.id in ids]
+                budget = 1600 if role == "world" else 900 if role == "forecast" else 1200
+                context = make_evidence_context(selected, record.evidence_assessment, max_chars_per_source=budget)
+                payload[key] = context["evidence"]
+                payload["evidence_assessment"] = context["assessment"].model_dump(mode="json")
+                payload["evidence_context_limitations"] = context["limitations"]
+            instructions += " 待核查前提不是事实；F编号只是组织发现，最终引用必须回到E/H/M/S编号，不能引用F或P作为外部证据。"
         return model.complete(role, payload, schema, instructions)
 
     def question_node(state: FlowState):
         question = QuestionSpec.model_validate(state["question"])
+        if record.question_framing:
+            frame = record.question_framing
+            analysis = QuestionAnalysis(normalized_question=question.question,
+                search_queries=[t.query for t in frame.retrieval_plan] or [question.question[:400]])
+            return {"question_analysis": analysis.model_dump(mode="json"), "question_framing": frame.model_dump(mode="json")}
         if not record.demo and record.evidence_mode in {"import", "reuse"}:
             # Search terms are only consumed by online retrieval; the user has
             # already supplied both the resolved question and the evidence here.
@@ -212,6 +237,30 @@ def build_graph(record: RunRecord, imported: list[Evidence], model: ModelClient 
 
     def evidence_node(state: FlowState):
         question = QuestionSpec.model_validate(state["question"])
+        if record.question_framing:
+            retrieval = record.retrieval_result
+            if retrieval is None and record.evidence_mode == "online":
+                if record.retrieval_started:
+                    retrieval = RetrievalResult(status="failed", retrieval_log=[RetrievalLog(task_id=t.id, query=t.query,
+                        purpose=t.purpose, status="failed", error="上次取证中断；本运行不重复花费检索额度，请创建新运行")
+                        for t in record.question_framing.retrieval_plan])
+                else:
+                    record.retrieval_started = True
+                    if store:
+                        store.save(record)
+                    retrieval = retrieve_evidence(question, record.question_framing.retrieval_plan, data_dir)
+            retrieval = retrieval or RetrievalResult(evidence=[e.model_copy(deep=True) for e in imported])
+            record.retrieval_result = retrieval
+            if store:
+                store.save(record)
+            evidence_model = model
+            if record.demo:
+                from .agent12_demo import EvidenceFixtureModel
+                evidence_model = EvidenceFixtureModel()
+            assessment = assess_evidence(question, record.question_framing, retrieval, evidence_model, data_dir)
+            record.evidence, record.evidence_assessment = retrieval.evidence, assessment
+            return {"evidence": [e.model_dump(mode="json") for e in retrieval.evidence],
+                    "evidence_assessment": assessment.model_dump(mode="json")}
         if record.evidence_mode == "online":
             queries = QuestionAnalysis.model_validate(state["question_analysis"]).search_queries
             items = online_search(question, data_dir, queries)
@@ -240,20 +289,40 @@ def build_graph(record: RunRecord, imported: list[Evidence], model: ModelClient 
             raise ValueError("主体 ID 重复")
         if len({a.id for a in world.assumptions}) != len(world.assumptions):
             raise ValueError("假设 ID 重复")
-        for content in question.user_assumptions:
-            next_number = 1
-            existing = {a.id for a in world.assumptions}
-            while f"H{next_number:03}" in existing:
-                next_number += 1
-            from .schemas import Assumption
-            world.assumptions.append(Assumption(id=f"H{next_number:03}", created_by="user", content=content, rationale="用户在创建运行时提供"))
+        allowed_conditions = set(question.user_assumptions)
+        if record.question_framing:
+            allowed_conditions |= {p.content for p in record.question_framing.premises
+                if p.user_review == "retained" and p.treatment == "scenario_condition"}
+            for a in world.assumptions:
+                if a.created_by == "user" and a.content not in allowed_conditions:
+                    a.created_by = "model"
+                    a.rationale = "模型提出，未经用户指定为情景条件；" + a.rationale
+        mapping = {}
+        conditions = [(None, text) for text in question.user_assumptions]
+        if record.question_framing:
+            conditions += [(p.id, p.content) for p in record.question_framing.premises
+                           if p.user_review == "retained" and p.treatment == "scenario_condition"]
+        for premise_id, content in conditions:
+            assumption = next((a for a in world.assumptions if a.content == content), None)
+            if assumption is None:
+                existing = {a.id for a in world.assumptions}
+                number = 1
+                while f"H{number:03}" in existing:
+                    number += 1
+                assumption = Assumption(id=f"H{number:03}", created_by="user", content=content,
+                    rationale="用户明确指定的情景条件，不是已证实事实")
+                world.assumptions.append(assumption)
+            assumption.created_by = "user"
+            if premise_id:
+                mapping[premise_id] = assumption.id
+        record.premise_assumption_map = mapping
         check_ids(world.evidence_refs, {e.id for e in evidence}, "世界状态")
         for actor in world.actors:
             check_ids(actor.visible_evidence_ids, {e.id for e in evidence}, "主体画像")
         valid_parents = {e.id for e in evidence} | {a.id for a in world.assumptions}
         for assumption in world.assumptions:
             check_ids(assumption.parent_ids, valid_parents, "假设")
-        return {"world": world.model_dump(mode="json")}
+        return {"world": world.model_dump(mode="json"), "premise_assumption_map": mapping}
 
     def simulation_node(state: FlowState):
         question = QuestionSpec.model_validate(state["question"])
@@ -457,8 +526,26 @@ def execute(record: RunRecord, imported: list[Evidence], store, *, resume: bool 
     current_stage = stage_names[0]
     stage_started = time.monotonic()
     try:
-        model = None if record.demo else ModelClient()
+        if record.demo:
+            model = None
+        elif record.question_framing:
+            previous_calls = store.list_calls(record.run_id)
+            prior_usage = {"calls": max(len(previous_calls), record.usage["calls"]),
+                "prompt_tokens": max(sum(c.prompt_tokens for c in previous_calls), record.usage["prompt_tokens"]),
+                "completion_tokens": max(sum(c.completion_tokens for c in previous_calls), record.usage["completion_tokens"])}
+            cap = max(0, config.MAX_CALLS - unique_request_count(record.preparation_records))
+            prep_seconds = sum(c.elapsed_seconds for c in record.preparation_records)
+            retrieval_seconds = max((log.elapsed_seconds for log in record.retrieval_result.retrieval_log), default=0) if record.retrieval_result else 0
+            measured_runtime = request_active_seconds(previous_calls) + retrieval_seconds
+            model = ModelClient(initial_usage=prior_usage,
+                initial_active_seconds=prep_seconds + max(record.active_seconds, measured_runtime),
+                call_limit=cap, on_reserve=lambda h, v: store.reserve_call(record.run_id, "runtime", call_limit=cap,
+                    input_hash=h, prompt_version=v), on_finish=store.finish_call)
+        else:
+            model = ModelClient()
         state: FlowState = {"question": record.question.model_dump(mode="json")}
+        if record.question_framing:
+            state["question_framing"] = record.question_framing.model_dump(mode="json")
         start_at = "define_question"
         if resume:
             pending = next(((stage, node) for stage, node in STAGE_NODES if stage not in record.stage_outputs), None)
@@ -474,9 +561,9 @@ def execute(record: RunRecord, imported: list[Evidence], store, *, resume: bool 
             record.errors = []
             record.resume_count += 1
             record.finished_at = None
-            if model:
+            if model and not record.question_framing:
                 model.usage = record.usage.copy()
-        graph = build_graph(record, imported, model, store.directory, start_at=start_at)
+        graph = build_graph(record, imported, model, store.directory, start_at=start_at, store=store)
         record.status = "running"
         record.stage = current_stage
         record.failed_stage = None
@@ -505,6 +592,8 @@ def execute(record: RunRecord, imported: list[Evidence], store, *, resume: bool 
             if model:
                 record.usage = model.usage.copy()
                 record.model = getattr(model, "actual_model", None) or record.model
+                if record.question_framing and hasattr(model, "active_seconds"):
+                    record.active_seconds = max(record.active_seconds, model.active_seconds-sum(c.elapsed_seconds for c in record.preparation_records))
             next_index = stage_names.index(stage) + 1
             current_stage = stage_names[next_index] if next_index < len(stage_names) else "done"
             record.stage = current_stage
@@ -512,6 +601,14 @@ def execute(record: RunRecord, imported: list[Evidence], store, *, resume: bool 
             stage_started = time.monotonic()
         record.status = record.forecast.status
         record.stage = "done"
+    except EvidenceStageError as exc:
+        record.evidence = exc.result.evidence
+        record.retrieval_result = exc.result
+        record.evidence_assessment = exc.assessment
+        record.status = "failed"
+        record.stage = "failed"
+        record.failed_stage = current_stage
+        record.errors.append(str(exc))
     except BudgetExceeded as exc:
         record.status = "partial"
         record.stage = "partial"
@@ -528,5 +625,9 @@ def execute(record: RunRecord, imported: list[Evidence], store, *, resume: bool 
         if model:
             record.usage = model.usage.copy()
             record.model = getattr(model, "actual_model", None) or record.model
+        if record.question_framing:
+            record.model_calls = store.list_calls(record.run_id)
+            if model and hasattr(model, "active_seconds"):
+                record.active_seconds = max(0, model.active_seconds - sum(c.elapsed_seconds for c in record.preparation_records))
         record.finished_at = utcnow()
         store.save(record)

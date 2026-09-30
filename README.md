@@ -1,5 +1,28 @@
 # ForecastLab
 
+## Agent 1–2 增量版本
+
+本分支新增“问题分析 → 澄清 → 前提处理 → 确认 → 逐项取证与原文查看”。原有模拟、结果和历史页面继续保留。快速本机启动：`bash scripts/start-local.sh`，默认地址 `http://127.0.0.1:8765`。
+
+无密钥演示：点击“体验问题与证据新流程”，点击“分析问题”，澄清填写“可下载的正式版”，处理两项前提，确认后开始预测。材料、模型响应和概率均为固定教学虚构，不代表真实模型质量。
+
+交接材料：[实现与下游兼容](docs/agent12/integration.md) · [API](docs/agent12/api.md) · [验证记录](docs/agent12/validation.md) · [局限](docs/agent12/limitations.md) · [LLM 使用](docs/agent12/llm-usage.md)。原说明的旧路径仍可使用，但未经过新版确认的运行明确标为“旧版直接输入”。
+
+```bash
+uv sync --locked --group browser
+uv run pytest -q
+(cd frontend && npm ci && npm run build)
+uv run --group browser python -m playwright install chromium
+uv run --group browser pytest frontend/tests/test_agent12_browser.py -q
+uv run python eval/agent12.py --mode fixture --cases examples/agent12/neutral-leading-pairs.json --output fixture-eval.json
+```
+
+真实生成仍需在后端 `.env` 配置模型服务，在线检索另需 Tavily。没有配置时返回明确错误，不把固定答案作为真实分析。浏览器测试只访问临时本机服务；最终 Python 自动化测试禁止真实 httpx 出网。
+
+源码包和补丁由 `scripts/package_agent12.py` 从**已提交**版本生成，排除运行数据和凭证。不要把 `.env`、数据库、模型密钥或用户材料加入小组仓库。
+
+---
+
 基于证据溯源与多主体推演的课程级预测工作台。这个仓库实现了所附 [工程计划](docs/agent-framework-plan-v1.html) 的核心 Demo：统一问题格式、证据包或在线检索、LangGraph 状态图、主体独立行动、两轮环境推进、审查、主观概率、SQLite 回放与报告导出。
 
 **状态说明：**教学演示使用明确标注的虚构材料与固定输出，用于无密钥联调。真实预测需要模型服务 Key；在线检索另需 Tavily Key。当前没有真实实验结果，也不声称概率已校准。

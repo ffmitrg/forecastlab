@@ -65,7 +65,9 @@ def test_explanatory_text_around_known_references_is_canonicalized():
     validate_forecast(forecast, DEMO_QUESTION, evidence, world, [], Review.model_validate(demo_output("review")))
 
 
-def test_import_rejects_future_or_private_source():
+def test_import_rejects_future_or_private_source(monkeypatch):
+    # This normalization test is about the demo cutoff, not the wall clock.
+    monkeypatch.setattr("app.sources.utcnow", lambda: DEMO_QUESTION.as_of)
     assert not public_url("http://127.0.0.1/private")
     assert not public_url("http://localhost/private")
     item = demo_evidence()[0].model_copy(update={"published_at": DEMO_QUESTION.as_of + timedelta(days=1)})
@@ -241,7 +243,9 @@ def test_reuse_keeps_frozen_evidence_and_history(monkeypatch):
     monkeypatch.setattr(config, "MODEL_API_KEY", "test-only")
     monkeypatch.setattr("app.graph.ModelClient", FakeModel)
     with TemporaryDirectory() as directory, TestClient(create_app(Path(directory))) as client:
-        first_id = client.post("/api/runs", json={"question": DEMO_QUESTION.model_dump(mode="json"), "evidence_mode": "demo"}).json()["run_id"]
+        # Seed a non-demo run with the fake model. Reusing a demo as real evidence is now rejected.
+        first_id = client.post("/api/runs", json={"question": DEMO_QUESTION.model_dump(mode="json"), "evidence_mode": "import",
+            "evidence": [e.model_dump(mode="json") for e in demo_evidence()]}).json()["run_id"]
         second_id = client.post("/api/runs", json={"question": DEMO_QUESTION.model_dump(mode="json"), "evidence_mode": "reuse", "parent_run_id": first_id}).json()["run_id"]
         first = client.get(f"/api/runs/{first_id}").json()
         second = client.get(f"/api/runs/{second_id}").json()

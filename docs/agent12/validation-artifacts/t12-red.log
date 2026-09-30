@@ -1,0 +1,70 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+________________ test_package_excludes_runtime_and_credentials _________________
+
+tmp_path = PosixPath('/private/tmp/pytest-of-youtang/pytest-41/test_package_excludes_runtime_0')
+small_repo = (PosixPath('/private/tmp/pytest-of-youtang/pytest-41/test_package_excludes_runtime_0/sample'), '46abaf791b5bfd9befde83d305dde50b60c05e28')
+
+    def test_package_excludes_runtime_and_credentials(tmp_path, small_repo):
+        repo, base = small_repo
+>       result = module().package_agent12(repo, tmp_path / "out", base=base)
+
+backend/tests/test_agent12_packaging.py:45: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def module():
+        path = ROOT / "scripts/package_agent12.py"
+>       assert path.exists(), "safe packaging script not implemented"
+E       AssertionError: safe packaging script not implemented
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('<checkout>/scripts/package_agent12.py').exists
+
+backend/tests/test_agent12_packaging.py:37: AssertionError
+________________________ test_manifest_matches_members _________________________
+
+tmp_path = PosixPath('/private/tmp/pytest-of-youtang/pytest-41/test_manifest_matches_members0')
+small_repo = (PosixPath('/private/tmp/pytest-of-youtang/pytest-41/test_manifest_matches_members0/sample'), '46abaf791b5bfd9befde83d305dde50b60c05e28')
+
+    def test_manifest_matches_members(tmp_path, small_repo):
+        repo, base = small_repo
+>       result = module().package_agent12(repo, tmp_path / "out", base=base)
+
+backend/tests/test_agent12_packaging.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def module():
+        path = ROOT / "scripts/package_agent12.py"
+>       assert path.exists(), "safe packaging script not implemented"
+E       AssertionError: safe packaging script not implemented
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('<checkout>/scripts/package_agent12.py').exists
+
+backend/tests/test_agent12_packaging.py:37: AssertionError
+_____________________ test_patch_applies_to_clean_baseline _____________________
+
+tmp_path = PosixPath('/private/tmp/pytest-of-youtang/pytest-41/test_patch_applies_to_clean_ba0')
+small_repo = (PosixPath('/private/tmp/pytest-of-youtang/pytest-41/test_patch_applies_to_clean_ba0/sample'), '0ed7c8235bfdc943aebcb438a2927a0f9d590e42')
+
+    def test_patch_applies_to_clean_baseline(tmp_path, small_repo):
+        repo, base = small_repo
+>       result = module().package_agent12(repo, tmp_path / "out", base=base)
+
+backend/tests/test_agent12_packaging.py:67: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def module():
+        path = ROOT / "scripts/package_agent12.py"
+>       assert path.exists(), "safe packaging script not implemented"
+E       AssertionError: safe packaging script not implemented
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('<checkout>/scripts/package_agent12.py').exists
+
+backend/tests/test_agent12_packaging.py:37: AssertionError
+=========================== short test summary info ============================
+FAILED backend/tests/test_agent12_packaging.py::test_package_excludes_runtime_and_credentials
+FAILED backend/tests/test_agent12_packaging.py::test_manifest_matches_members
+FAILED backend/tests/test_agent12_packaging.py::test_patch_applies_to_clean_baseline
+3 failed in 1.32s
